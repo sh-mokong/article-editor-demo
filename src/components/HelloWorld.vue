@@ -1,58 +1,65 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+  <div>
+    <p>Content Editable :</p>
+    <contenteditable tag="div" :contenteditable="isEditable" v-model="message" :noNL="noNL" :noHTML="noHTML" :isEditable="isEditable" @returned="enterPressed" @keyup="keyUp" @keypress="keyPress" />
+    <form action="">
+      <input type="checkbox" id="editable" v-model="isEditable"/><label for="editable">Editable ?</label><br/>
+      <input type="checkbox" id="nonl" v-model="noNL"/><label for="nonl">noNL ?</label><br/>
+      <input type="checkbox" id="nohtml" v-model="noHTML"/><label for="nohtml">noHTML ?</label><br/>
+      <label for="alt">Alternative input :</label>
+      <input type="text" id="alt" v-model="message"/>
+    </form>
+    <p>Content :</p>
+    <p>{{message}}</p>
+    <p>"returned" Event :</p>
+    <p>{{event}}</p>
+    <p>"keyUp" Event (directly set on the element) :</p>
+    <p>{{keyUpEv}}</p>
+    <p>"keyPress" Event (caught and re-emitted) :</p>
+    <p>{{keyPressEv}}</p>
+
   </div>
 </template>
 
 <script>
-export default {
+import { defineComponent, ref } from 'vue';
+import contenteditable from 'vue-contenteditable';
+export default defineComponent({
   name: 'HelloWorld',
-  props: {
-    msg: String
+  components : {
+    contenteditable
+  },
+  setup(props){
+    const r = {
+      isEditable : ref(true),
+      noNL : ref(false),
+      noHTML : ref(false),
+      message : ref(),
+      event : ref(''),
+      keyUpEv : ref(''),
+      keyPressEv : ref(''),
+    }
+    return {
+      ...r,
+      enterPressed(ev){
+        const currentdate = new Date();
+        r.event.value = "Return pressed on: " + currentdate.getDate() + "/"
+            + (currentdate.getMonth()+1)  + "/"
+            + currentdate.getFullYear() + "  "
+            + currentdate.getHours() + ":"
+            + currentdate.getMinutes() + ":"
+            + currentdate.getSeconds()
+            + " Content : " + ev
+      },
+      keyUp(ev){
+        const currentdate = new Date();
+        r.keyUpEv.value = "ev keyup : '"+ev.key+"'";
+      },
+      keyPress(ev){
+        const currentdate = new Date();
+        r.keyPressEv.value = "ev keypress : '"+ev.key+"'";
+      }
+    }
   }
-}
+});
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
-</style>
