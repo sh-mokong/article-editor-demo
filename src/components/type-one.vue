@@ -7,7 +7,6 @@
       :contenteditable="editable"
       @input="update"
       @blur="update"
-      @remove="remove"
   >
   </component>
 </template>
@@ -34,6 +33,10 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    contents:{
+      type:Object,
+      default:() => {}
+    }
   },
   setup(props, {emit}) {
     const element = ref(null);
@@ -47,7 +50,7 @@ export default defineComponent({
     function currentContent() {
       let html = props.noHTML ? element.value.innerText : element.value.innerHTML;
       // console.log(html);
-      html = element.value.innerHTML;
+      // html = element.value.innerHTML;
       return html;
     }
 
@@ -57,19 +60,21 @@ export default defineComponent({
 
     const removeIconArticleForm = (id) => {
       console.log('remove Type-One', id);
-      // emit('remove', id);
+      document.getElementById(id).remove();
     };
 
-    const addIconArticleForm = (range) => {
 
+    const addIconArticleForm = (range) => {
+      // 아이콘 영역 추가
       const timeStamp = new Date().getTime();
       const selection = window.getSelection();
+      const message = '테스트 테스트 123123123\nnasdfjklasjdflkjalsdjlf\nasfdqweuroiuwqreoiasjfjlk';
 
       // vue component 를 마운트 시킬 pre wrapper 생성
       const temp = document.createElement('pre');
       temp.classList.add('icon-wrapper');
-      temp.setAttribute('id', `icon-${timeStamp.toString()}`);
 
+      temp.setAttribute('id', `icon-${timeStamp.toString()}`);
       if (selection) {
         range.deleteContents();
         range.insertNode(temp);
@@ -81,26 +86,33 @@ export default defineComponent({
         createApp(IconArticleForm,
             {
               id: `icon-${timeStamp.toString()}`,
-              imgLink: '', message: '테스트 테스트 123123123\nnasdfjklasjdflkjalsdjlf\nasfdqweuroiuwqreoiasjfjlk',
+              imgLink: '', message: message,
             }).mount(`#icon-${timeStamp.toString()}`);
       });
-
     };
 
     onMounted(() => {
       console.log('onMounted Type-One!');
-      console.log(props.modelValue);
 
-      // 아이콘영역 추가를 위한 eventBus 추가
+      // 아이콘 영역 추가를 위한 eventBus 추가
       window.EventBus.on('emitAddIconArticleForm', (range) => {
         console.log('window.EventBus.on(\'emitIconArticleForm\')', range);
         addIconArticleForm(range);
       });
 
+      // 아이콘 영역 삭제를 위한 eventBus 추가
       window.EventBus.on('emitRemoveIconArticleForm', (id) => {
         console.log('window.EventBus.on(\'emitRemoveIconArticleForm\')', id);
         removeIconArticleForm(id);
       });
+
+      if (props.contents !== null) {
+        // contents json 값을 화면에 파싱
+        console.log(props.contents);
+
+
+      }
+
     });
 
     return {
@@ -124,5 +136,8 @@ export default defineComponent({
 
 #editor[contenteditable="false"] {
   @apply bg-red-100
+}
+.icon-wrapper {
+  @apply w-full p-3 bg-black text-white rounded-lg select-none cursor-pointer
 }
 </style>

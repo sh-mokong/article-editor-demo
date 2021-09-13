@@ -6,7 +6,7 @@
       :class="[classes, status ? '':'disabled']"
       @click="clicked">
     <div class="inline-block inline-block align-top flex-grow-0" contenteditable="false">
-      <img src="../assets/img/img.png">
+      <img src="../assets/img/img.png" alt="">
     </div>
     <div
         class="inline-block bg-white text-black align-top ml-2 pl-2 w-10/12 flex-grow"
@@ -23,7 +23,7 @@
           editable
         }}
       </button>
-      <button type="button" class="block border-white text-white border-2 mx-auto p-2" @click="remove"> X</button>
+      <button type="button" class="block border-white text-white border-2 mx-auto p-1" @click="remove"> X</button>
     </div>
   </article>
 </template>
@@ -56,8 +56,8 @@ export default defineComponent({
     const root = ref(null);
 
     const enterKeyEvent = ($event) => {
-      console.log($event.keyCode, $event.keyCode == 13);
-      if ($event.keyCode == 13) {
+      console.log($event.keyCode, $event.keyCode === 13);
+      if ($event.keyCode === 13) {
         console.log($event.target, $event.currentTarget);
         document.execCommand('insertBrOnReturn', false, true);
         // document.execCommand("defaultParagraphSeparator", false, "br");
@@ -115,12 +115,12 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.in {
-  background-color: green;
-  color: white
-}
+/*.in {*/
+/*  background-color: green;*/
+/*  color: white*/
+/*}*/
 
-.disabled {
-  /*@apply bg-red-200 cursor-default*/
-}
+/*.disabled {*/
+/*  !*@apply bg-red-200 cursor-default*!*/
+/*}*/
 </style>
