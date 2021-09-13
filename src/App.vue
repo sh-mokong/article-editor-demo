@@ -158,7 +158,9 @@ export default defineComponent({
   @apply h-screen w-screen bg-blue-100
 }
 
-
+.icon-wrapper {
+  @apply w-full p-3 bg-black text-white rounded-lg select-none cursor-pointer
+}
 </style>
 
 

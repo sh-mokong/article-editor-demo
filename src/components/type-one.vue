@@ -137,7 +137,5 @@ export default defineComponent({
 #editor[contenteditable="false"] {
   @apply bg-red-100
 }
-.icon-wrapper {
-  @apply w-full p-3 bg-black text-white rounded-lg select-none cursor-pointer
-}
+
 </style>
