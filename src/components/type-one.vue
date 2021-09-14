@@ -33,10 +33,11 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
-    contents:{
-      type:Object,
-      default:() => {}
-    }
+    contents: {
+      type: Object,
+      default: () => {
+      },
+    },
   },
   setup(props, {emit}) {
     const element = ref(null);
@@ -47,12 +48,12 @@ export default defineComponent({
       emit('toggleEditable');
     };
 
-    function currentContent() {
+    const currentContent = () => {
       let html = props.noHTML ? element.value.innerText : element.value.innerHTML;
       // console.log(html);
       // html = element.value.innerHTML;
       return html;
-    }
+    };
 
     const update = () => {
       emit('update:modelValue', currentContent());
@@ -63,7 +64,6 @@ export default defineComponent({
       document.getElementById(id).remove();
     };
 
-
     const addIconArticleForm = (range) => {
       // 아이콘 영역 추가
       const timeStamp = new Date().getTime();
@@ -71,7 +71,7 @@ export default defineComponent({
       const message = '테스트 테스트 123123123\nnasdfjklasjdflkjalsdjlf\nasfdqweuroiuwqreoiasjfjlk';
 
       // vue component 를 마운트 시킬 pre wrapper 생성
-      const temp = document.createElement('pre');
+      const temp = document.createElement('div');
       temp.classList.add('icon-wrapper');
 
       temp.setAttribute('id', `icon-${timeStamp.toString()}`);
@@ -91,6 +91,13 @@ export default defineComponent({
       });
     };
 
+    const parseJsonToContentEdit = (contents) => {
+      console.log('parseJsonToContentEdit' , contents);
+
+
+
+    }
+
     onMounted(() => {
       console.log('onMounted Type-One!');
 
@@ -108,9 +115,7 @@ export default defineComponent({
 
       if (props.contents !== null) {
         // contents json 값을 화면에 파싱
-        console.log(props.contents);
-
-
+        parseJsonToContentEdit(props.contents);
       }
 
     });
