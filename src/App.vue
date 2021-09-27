@@ -2,18 +2,22 @@
   <div id="app" class="relative">
     <div aria-labelledby="아이콘 목록" class="border-2 border-gray-400 relative" role="toolbar">
       <button class="btn-icon" type="button" @click="addIconArticleForm">
-        <img src="@/assets/img/img_1.png" alt="">
+        <img src="@/assets/img/img_1.png" class="w-10 h-10" alt="">
       </button>
       <button class="btn-icon" type="button">
-        <img src="@/assets/img/img_2.png" alt="">
+        <img src="@/assets/img/img_2.png" class="w-10 h-10" alt="">
       </button>
-      <button type="button" @click="outputArticle">out</button>
+      <button type="button" @click="outputArticle('innerText')" class="m-2">out innerText</button>
+      <button type="button" @click="outputArticle('innerHTML')" class="m-2">out innerHtml</button>
+      <button type="button" @click="outputArticle('textContent')" class="m-2">out textContent</button>
+      <button type="button" @click="outputArticle('children')" class="m-2">out children</button>
     </div>
     <type-one
         :tag="'div'"
         :editable="editable"
         v-model="article"
         :contents="contents"
+        :article-id="articleId"
     ></type-one>
   </div>
 </template>
@@ -21,7 +25,7 @@
 <script>
 
 import TypeOne from '@/components/type-one';
-import {defineComponent, ref} from 'vue';
+import {defineComponent, ref, onMounted} from 'vue';
 
 export default defineComponent({
   name: 'App',
@@ -35,94 +39,107 @@ export default defineComponent({
         {type: 'anchor-male-shot', icon: 'img_1.png'},
         {type: 'anchor-female-shot', icon: 'img_2.png'},
       ],
-      contents: {
-        'type': 'doc',
-        'content': [
-          {
-            'type': 'paragraph',
-            'content': [
-              {
-                'type': 'text',
-                'style': ['bold'],
-                'text': 'aaaasdfasdfasfasdfasdfasf',
-              },
-            ],
-          },
-          {
-            'type': 'icon',
-            'id': 'icon-1234',
-            'icon-type': 'man-anchor',
-            'content': [
-              {
-                'type': 'text',
-                'text': 'By default, QEditor offers most if not all the commands you’d need in a WYSIWYG editor: ',
-              },
-              {
-                'type': 'text',
-                'style': ['bold'],
-                'text': 'bold',
-              },
-              {
-                'type': 'text',
-                'style': ['italic'],
-                'text': 'italic',
-              },
-              {
-                'type': 'text',
-                'style': ['strike'],
-                'text': 'strike',
-              },
-              {
-                'type': 'text',
-                'style': ['underline'],
-                'text': 'underline',
-              },
-              {
-                'type': 'text',
-                'text': 'unordered (list), ordered (list), subscript, superscript, link, fullscreen, quote, left (align), center (align), right (align), justify (align), print, outdent, indent, removeFormat, hr, undo, redo, h1 to h6, p (paragraph), code (code paragraph), size-1 to size-7.',
-              },
-            ],
-          },
-          {
-            'type': 'paragraph',
-          },
-          {
-            'type': 'paragraph',
-          },
-          {
-            'type': 'paragraph',
-            'content': [
-              {
-                'type': 'text',
-                'text': '@vue/composition-api가 변경 되었을 때 이를 사용하는 개발자는 API 변경/삭제에 대한 권한이 없다. 그래서 업데이트가 되는 순간 프로젝트에 직접적인 영향을 전파하게 된다. 이런 부분을 나는 외부 의존성이라고 부른다.',
-              },
-            ],
-          },
-          {
-            'type': 'paragraph',
-          },
-          {
-            'type': 'icon',
-            'id': 'icon-2345',
-            'icon-type': 'man-anchor',
-            'content': [
-              {
-                'type': 'text',
-                'text': 'unordered (list), ordered (list), subscript, superscript, link, fullscreen, quote, left (align), center (align), right (align), justify (align), print, outdent, indent, removeFormat, hr, undo, redo, h1 to h6, p (paragraph), code (code paragraph), size-1 to size-7.',
-              },
-            ],
-          },
-        ],
-      },
+      contents: {},
     };
   },
   emits: [],
   setup() {
-    const article = ref({});
+    const article = ref();
+    const articleId = ref();
     const editable = ref(true);
+    const out = ref();
 
-    const outputArticle = () => {
-      console.log('outputArticle', article.value);
+    const outputArticle = (type) => {
+      console.log(article.value);
+      let output = '';
+      if (type !== '' && article.value) {
+        output = article.value[type];
+      }
+      // let tempText = [];
+      // let tempIcon = {
+      //   position:[],
+      //   text:[]
+      // };
+
+      console.log(`outputArticle: ${type}`, output);
+
+      if (output !== '') {
+        out.value = {
+          text: [],
+          icon: [],
+        };
+
+        const icon = {
+          id: '',
+          type: '',
+          position:[0,0],
+          text:[]
+        }
+        console.log(icon);
+        getChildNodesItems(output);
+
+        // output.forEach((node) => {
+        // console.log('node', node, 'node.nodeValue', node.nodeValue);
+        // console.log('node.firstChild', node.firstChild, 'typeof node.firstChild', typeof node.firstChild);
+        // console.log('node.childNodes', node.childNodes);
+        // console.log('node.nodeName', node.nodeName);
+
+        // console.log('node.childNodes[0].nodeName', node.childNodes[0].nodeName);
+        // console.log('node.childNodes[0].textContent', node.childNodes[0].textContent);
+
+        // if (node.childNodes[0].nodeName === '#text') {
+        //   console.log('#text');
+        //   tempText.push(node.childNodes[0].textContent);
+        // }
+
+        // if (node.childNodes[0].nodeName === '#text') {
+        // out.value.text[articleId.value] = [];
+        // out.value.text[articleId.value].push(node.childNodes[0].textContent);
+        // }
+
+        // if (node.childNodes.)
+        // });
+
+      }
+
+      // console.log('tempText', tempText);
+      // out.value.text[articleId.value] = tempText;
+      console.log(out.value);
+    };
+
+    const getChildNodesItems = (nodes, type = 'text') => {
+      console.log('getChildNodesItems',type, nodes);
+      // if (nodes.childNodes.length > 1) {
+      //   // getChildNodesItems(nodes.childNodes)
+      // }
+      nodes.forEach((node) => {
+        if (node.childNodes.length > 0) {
+          if (node.parentElement.classList.contains('icon-wrapper') || type === 'icon') {
+            getChildNodesItems(node.childNodes, 'icon');
+          } else {
+            getChildNodesItems(node.childNodes);
+          }
+        }
+
+        if (type === 'icon') {
+          // TODO :: 버튼인경우 제외
+          if (node.nodeName === '#text') {
+            out.value.icon.position.line = out.value.text.length;
+            out.value.icon.text.push(node.textContent);
+          } else if (node.nodeName === 'BR') {
+            out.value.text.push(/\r\n/);
+          }
+        } else {
+          if (node.nodeName === '#text') {
+            // 아이콘 영역인지 아닌지 확인
+            // TODO :: 아이콘 영역의 빈값 입력 확인
+            out.value.text.push(node.textContent);
+          } else if (node.nodeName === 'BR') {
+            out.value.text.push(/\r\n/);
+          }
+        }
+
+      });
     };
 
     const toggle = () => {
@@ -141,6 +158,10 @@ export default defineComponent({
       window.EventBus.emit('emitAddIconArticleForm', window.getSelection().getRangeAt(0));
     };
 
+    onMounted(() => {
+      articleId.value = `article-${new Date().getTime().toString()}`;
+    });
+
     return {
       editable,
       outputArticle,
@@ -148,6 +169,8 @@ export default defineComponent({
       update,
       article,
       addIconArticleForm,
+      out,
+      articleId,
     };
   },
 });
@@ -159,7 +182,7 @@ export default defineComponent({
 }
 
 .icon-wrapper {
-  @apply w-full p-3 bg-black text-white rounded-lg select-none cursor-pointer
+  @apply relative w-full my-2 bg-black text-white rounded-lg select-none
 }
 </style>
 

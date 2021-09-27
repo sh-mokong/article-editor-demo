@@ -1,13 +1,16 @@
 <template>
   <component
       :is="tag"
-      class="w-full h-full relative outline-none p-2"
+      class="w-full h-full relative outline-none editor-body"
       ref="element"
       id="editor"
+      tabindex="0"
       :contenteditable="editable"
+      :article-id="articleId"
       @input="update"
       @blur="update"
   >
+    <div><br></div>
   </component>
 </template>
 
@@ -24,7 +27,8 @@ export default defineComponent({
       type: Boolean,
       default: true,
     },
-    modelValue: String,
+    articleId: String,
+    modelValue: Object,
     noHTML: {
       type: Boolean,
       default: true,
@@ -40,7 +44,7 @@ export default defineComponent({
     },
   },
   setup(props, {emit}) {
-    const element = ref(null);
+    const element = ref();
     const article = ref({});
 
     const setClickActions = () => {
@@ -49,10 +53,10 @@ export default defineComponent({
     };
 
     const currentContent = () => {
-      let html = props.noHTML ? element.value.innerText : element.value.innerHTML;
+      // let html = props.noHTML ? element.value.innerText : element.value.innerHTML;
       // console.log(html);
       // html = element.value.innerHTML;
-      return html;
+      return element.value;
     };
 
     const update = () => {
@@ -68,12 +72,13 @@ export default defineComponent({
       // 아이콘 영역 추가
       const timeStamp = new Date().getTime();
       const selection = window.getSelection();
-      const message = '테스트 테스트 123123123\nnasdfjklasjdflkjalsdjlf\nasfdqweuroiuwqreoiasjfjlk';
+      const message = '동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리나라 만세 무궁화 삼천리 화려강산 대한사람 대한으로 길이 보전하세 남산위에 저 소나무 철갑을 두른듯 바람서리 불변함은 우리 기상일세 무궁화 삼천리 화려강산 대한사람 대한으로 길이 보전하세 가을하늘 공활한데 높고 구름없이 밝은달은 우리가슴 일편단심일세 무궁화 삼천리 화려강산 대한사람 대한으로 길이 보전하세 이기상과 이맘으로 충성을 다하여 괴로우나 즐거우나 나라 사랑하세 무궁화 삼천리 화려강산 대한사람 대한으로 길이 보전하세';
 
       // vue component 를 마운트 시킬 pre wrapper 생성
       const temp = document.createElement('div');
       temp.classList.add('icon-wrapper');
 
+      temp.setAttribute('contenteditable', false);
       temp.setAttribute('id', `icon-${timeStamp.toString()}`);
       if (selection) {
         range.deleteContents();
@@ -92,11 +97,16 @@ export default defineComponent({
     };
 
     const parseJsonToContentEdit = (contents) => {
-      console.log('parseJsonToContentEdit' , contents);
+      // TODO :: content 데이터가 있는 경우 화면에 렌더링
+      for (const property in contents) {
+        console.log(`${property}: ${contents[property]}`);
+      }
+      makeDomNodeTree('div');
+    };
 
-
-
-    }
+    const makeDomNodeTree = (node) => {
+      console.log(node);
+    };
 
     onMounted(() => {
       console.log('onMounted Type-One!');
@@ -118,6 +128,29 @@ export default defineComponent({
         parseJsonToContentEdit(props.contents);
       }
 
+      element.value.addEventListener('paste', (event) => {
+        let paste = (event.clipboardData || window.clipboardData).getData('text');
+        const temp = paste.split(/\n/g).reverse();
+        const selection = window.getSelection();
+
+        if (!selection.rangeCount) {
+          return false;
+        }
+
+        selection.deleteFromDocument();
+
+        temp.forEach((text) => {
+          let row = document.createElement('div');
+          if (text) {
+            row.innerText = text.toString();
+          } else {
+            row.innerHTML = '<br>';
+          }
+          selection.getRangeAt(0).insertNode(row);
+        });
+        event.preventDefault();
+      });
+
     });
 
     return {
@@ -132,15 +165,11 @@ export default defineComponent({
 
 <style scoped>
 #editor {
-  @apply bg-white h-full w-full
+  @apply bg-white h-full w-full p-2
 }
 
-#editor[contenteditable="true"] {
-  @apply bg-green-200
+.editor-body::v-deep(p) {
+  line-height: 1rem;
+  height: 1.5rem;
 }
-
-#editor[contenteditable="false"] {
-  @apply bg-red-100
-}
-
 </style>
