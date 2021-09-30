@@ -46,7 +46,6 @@
           editable
         }}
       </button>
-
       <button type="button" class="block border-white text-white border-2 mx-auto m-1 p-1 text-base" @click="remove"> X</button>
     </div>
   </article>

@@ -1,17 +1,14 @@
 <template>
   <div id="app" class="relative">
-    <div aria-labelledby="아이콘 목록" class="border-2 border-gray-400 relative" role="toolbar">
+    <div aria-labelledby="아이콘 목록" class="border-2 border-gray-400 relative p-2" role="toolbar">
       <button class="btn-icon" type="button" @click="addIconArticleForm('male')">
         <img src="@/assets/img/img_1.png" class="w-10 h-10" alt="">
       </button>
       <button class="btn-icon" type="button" @click="addIconArticleForm('female')">
         <img src="@/assets/img/img_2.png" class="w-10 h-10" alt="">
       </button>
-      <!--      <button type="button" @click="outputArticle('innerText')" class="m-2">out innerText</button>-->
-      <!--      <button type="button" @click="outputArticle('innerHTML')" class="m-2">out innerHtml</button>-->
-      <!--      <button type="button" @click="outputArticle('textContent')" class="m-2">out textContent</button>-->
-      <button type="button" @click="loadArticle" class="m-2">sample</button>
-      <button type="button" @click="outputArticle('children')" class="m-2">outputJSON</button>
+      <button type="button" @click="outputArticle('json')" class="m-2">output JSON</button>
+      <button type="button" @click="outputArticle('text')" class="m-2">output Text</button>
     </div>
     <type-one
         :tag="'div'"
@@ -54,31 +51,30 @@ export default defineComponent({
     const tempParentNode = ref();
 
     const outputArticle = (type) => {
-      console.log(article.value);
+      // console.log(article.value);
       let output = '';
       if (type !== '' && article.value) {
-        output = article.value[type];
+        output = article.value.children;
       }
-      console.log(`outputArticle: ${type}`, output);
+      // console.log(`outputArticle: ${type}`, output);
 
+      // 초기화
       if (output !== '') {
         out.value = {
           text: {},
           icon: {},
-          node: {},
         };
-
         tempParentNode.value = '';
         lineNumber.value = 0;
 
         getExtractArticleText(output);
       }
-      printEditor(out.value);
+      printEditor(out.value, type);
       // console.log(out.value);
     };
 
     const getExtractArticleText = (nodes) => {
-      console.log('getExtractArticleText', nodes);
+      // console.log('getExtractArticleText', nodes);
 
       nodes.forEach((node) => {
         /**
@@ -157,8 +153,18 @@ export default defineComponent({
       });
     };
 
-    const printEditor = (output) => {
-      console.log(JSON.stringify(output));
+    const printEditor = (output, type) => {
+      if (type === 'json') {
+        console.log(JSON.stringify(output));
+      } else if (type === 'text') {
+        let text = '';
+        for (let textKey in output.text) {
+          text += output.text[textKey] + '\r\n';
+        }
+        console.log('TEXT: ' );
+        console.log(text);
+        console.log('Icon: ' , output.icon);
+      }
     }
 
     const toggle = () => {
