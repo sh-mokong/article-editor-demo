@@ -23,8 +23,8 @@
       :icon-type="iconType"
   >
     <div class="inline-block w-28 align-top flex-grow-0 non-recursive" contenteditable="false">
-      <img v-if="iconType === 'male'" class="w-10 h-10" src="@/assets/img/img_1.png" alt="">
-      <img v-else class="w-10 h-10" src="@/assets/img/img_2.png" alt="">
+      <img v-if="iconType === 'male'" class="w-14 h-14" src="@/assets/img/img_1.png" alt="">
+      <img v-else class="w-14 h-14" src="@/assets/img/img_2.png" alt="">
     </div>
 
     <div
@@ -42,12 +42,12 @@
         contenteditable="false">
       <button
           v-if="iconType === 'male'"
-          type="button" class="block border-white text-white border-2 mx-auto m-1 p-1" @click="toggle">edit:{{
+          type="button" class="block border-white text-white border-2 mx-auto m-1 p-1 text-base" @click="toggle">edit:{{
           editable
         }}
       </button>
 
-      <button type="button" class="block border-white text-white border-2 mx-auto m-1 p-1" @click="remove"> X</button>
+      <button type="button" class="block border-white text-white border-2 mx-auto m-1 p-1 text-base" @click="remove"> X</button>
     </div>
   </article>
   <div class="line-breaker bottom-bar non-recursive"
@@ -97,7 +97,7 @@ export default defineComponent({
     const bottomButtonVisible = ref(false);
 
     const enterKeyEvent = ($event) => {
-      console.log($event.keyCode, $event.keyCode === 13);
+      // console.log($event.keyCode, $event.keyCode === 13);
       if ($event.keyCode === 13) {
         console.log($event.target, $event.currentTarget);
         return false;

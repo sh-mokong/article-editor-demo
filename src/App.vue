@@ -11,7 +11,7 @@
       <!--      <button type="button" @click="outputArticle('innerHTML')" class="m-2">out innerHtml</button>-->
       <!--      <button type="button" @click="outputArticle('textContent')" class="m-2">out textContent</button>-->
       <button type="button" @click="loadArticle" class="m-2">sample</button>
-      <button type="button" @click="outputArticle('children')" class="m-2">output JSON</button>
+      <button type="button" @click="outputArticle('children')" class="m-2">outputJSON</button>
     </div>
     <type-one
         :tag="'div'"

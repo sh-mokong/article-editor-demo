@@ -72,7 +72,7 @@ export default defineComponent({
       // 아이콘 영역 추가
       const timeStamp = new Date().getTime();
       const selection = window.getSelection();
-      const message = '동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리나라 만세 무궁화 삼천리 화려강산 대한사람 대한으로 길이 보전하세 남산위에 저 소나무 철갑을 두른듯 바람서리 불변함은 우리 기상일세 무궁화 삼천리 화려강산 대한사람 대한으로 길이 보전하세 가을하늘 공활한데 높고 구름없이 밝은달은 우리가슴 일편단심일세 무궁화 삼천리 화려강산 대한사람 대한으로 길이 보전하세 이기상과 이맘으로 충성을 다하여 괴로우나 즐거우나 나라 사랑하세 무궁화 삼천리 화려강산 대한사람 대한으로 길이 보전하세';
+      const message = '';
 
       // vue component 를 마운트 시킬 pre wrapper 생성
       const temp = document.createElement('div');
