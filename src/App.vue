@@ -1,16 +1,17 @@
 <template>
   <div id="app" class="relative">
     <div aria-labelledby="아이콘 목록" class="border-2 border-gray-400 relative" role="toolbar">
-      <button class="btn-icon" type="button" @click="addIconArticleForm">
+      <button class="btn-icon" type="button" @click="addIconArticleForm('male')">
         <img src="@/assets/img/img_1.png" class="w-10 h-10" alt="">
       </button>
-      <button class="btn-icon" type="button">
+      <button class="btn-icon" type="button" @click="addIconArticleForm('female')">
         <img src="@/assets/img/img_2.png" class="w-10 h-10" alt="">
       </button>
-      <button type="button" @click="outputArticle('innerText')" class="m-2">out innerText</button>
-      <button type="button" @click="outputArticle('innerHTML')" class="m-2">out innerHtml</button>
-      <button type="button" @click="outputArticle('textContent')" class="m-2">out textContent</button>
-      <button type="button" @click="outputArticle('children')" class="m-2">out children</button>
+      <!--      <button type="button" @click="outputArticle('innerText')" class="m-2">out innerText</button>-->
+      <!--      <button type="button" @click="outputArticle('innerHTML')" class="m-2">out innerHtml</button>-->
+      <!--      <button type="button" @click="outputArticle('textContent')" class="m-2">out textContent</button>-->
+      <button type="button" @click="loadArticle" class="m-2">sample</button>
+      <button type="button" @click="outputArticle('children')" class="m-2">output JSON</button>
     </div>
     <type-one
         :tag="'div'"
@@ -46,8 +47,11 @@ export default defineComponent({
   setup() {
     const article = ref();
     const articleId = ref();
+    const articleData = ref();
     const editable = ref(true);
     const out = ref();
+    const lineNumber = ref(0);
+    const tempParentNode = ref();
 
     const outputArticle = (type) => {
       console.log(article.value);
@@ -55,92 +59,107 @@ export default defineComponent({
       if (type !== '' && article.value) {
         output = article.value[type];
       }
-      // let tempText = [];
-      // let tempIcon = {
-      //   position:[],
-      //   text:[]
-      // };
-
       console.log(`outputArticle: ${type}`, output);
 
       if (output !== '') {
         out.value = {
-          text: [],
-          icon: [],
+          text: {},
+          icon: {},
+          node: {},
         };
 
-        const icon = {
-          id: '',
-          type: '',
-          position:[0,0],
-          text:[]
-        }
-        console.log(icon);
-        getChildNodesItems(output);
+        tempParentNode.value = '';
+        lineNumber.value = 0;
 
-        // output.forEach((node) => {
-        // console.log('node', node, 'node.nodeValue', node.nodeValue);
-        // console.log('node.firstChild', node.firstChild, 'typeof node.firstChild', typeof node.firstChild);
-        // console.log('node.childNodes', node.childNodes);
-        // console.log('node.nodeName', node.nodeName);
-
-        // console.log('node.childNodes[0].nodeName', node.childNodes[0].nodeName);
-        // console.log('node.childNodes[0].textContent', node.childNodes[0].textContent);
-
-        // if (node.childNodes[0].nodeName === '#text') {
-        //   console.log('#text');
-        //   tempText.push(node.childNodes[0].textContent);
-        // }
-
-        // if (node.childNodes[0].nodeName === '#text') {
-        // out.value.text[articleId.value] = [];
-        // out.value.text[articleId.value].push(node.childNodes[0].textContent);
-        // }
-
-        // if (node.childNodes.)
-        // });
-
+        getExtractArticleText(output);
       }
-
-      // console.log('tempText', tempText);
-      // out.value.text[articleId.value] = tempText;
-      console.log(out.value);
+      printEditor(out.value);
+      // console.log(out.value);
     };
 
-    const getChildNodesItems = (nodes, type = 'text') => {
-      console.log('getChildNodesItems',type, nodes);
-      // if (nodes.childNodes.length > 1) {
-      //   // getChildNodesItems(nodes.childNodes)
-      // }
+    const getExtractArticleText = (nodes) => {
+      console.log('getExtractArticleText', nodes);
+
       nodes.forEach((node) => {
-        if (node.childNodes.length > 0) {
-          if (node.parentElement.classList.contains('icon-wrapper') || type === 'icon') {
-            getChildNodesItems(node.childNodes, 'icon');
+        /**
+         * 화면에서 한 라인의 기준은 div
+         * 붙여넣기 하다보면 보이는것으론 똑같지만 dom tree 상으로는 div 가 중첩이 될 수 있음
+         * 자식 node 중에 element 가 없다면 tree 구조의 끝을 의미
+         * node 객체의 의 끝은 #text 이거나 br
+         */
+        if (node.nodeName.toUpperCase() !== 'DIV') {
+          if (node.parentNode.nodeName.toUpperCase() === 'DIV') {
+            if (tempParentNode.value?.outerText !== node.parentNode.outerText) {
+              tempParentNode.value = nodes[0].parentNode;
+              lineNumber.value++;
+            }
+          }
+        }
+
+        /**
+         * 최하위 자식노드까지 재귀호출로 접근한다
+         * 아이콘 영역에서 non-recursive 영역은 제외
+         */
+        if (node.childNodes.length > 0 && !node.classList?.contains('non-recursive')) {
+          if (node.classList?.contains('icon-wrapper')) {
+            // 아이콘 영역이 나오면 해당 아이콘의 정보를 생성
+            if (!out.value.icon[node.id]) {
+              out.value.icon[node.id] = {
+                iconType: '',
+                text: '',
+                position: {line: 0, index: 0},
+              };
+            }
+            out.value.icon[node.id].iconType = node.dataset.iconType;
+
+            // 아이콘 영역은 별도의 함수에서 처리
+            getIconItemsInformation(nodes);
           } else {
-            getChildNodesItems(node.childNodes);
+            getExtractArticleText(node.childNodes);
           }
         }
 
-        if (type === 'icon') {
-          // TODO :: 버튼인경우 제외
-          if (node.nodeName === '#text') {
-            out.value.icon.position.line = out.value.text.length;
-            out.value.icon.text.push(node.textContent);
-          } else if (node.nodeName === 'BR') {
-            out.value.text.push(/\r\n/);
-          }
-        } else {
-          if (node.nodeName === '#text') {
-            // 아이콘 영역인지 아닌지 확인
-            // TODO :: 아이콘 영역의 빈값 입력 확인
-            out.value.text.push(node.textContent);
-          } else if (node.nodeName === 'BR') {
-            out.value.text.push(/\r\n/);
-          }
+        if (node.nodeName.toUpperCase() === '#TEXT' && node.textContent !== '') {
+          // 기존 라인에 값이 있다면 해당 텍스트 이후로 추가
+          out.value.text[lineNumber.value] = out.value.text[lineNumber.value] ?
+              out.value.text[lineNumber.value] + node.textContent :
+              node.textContent;
+        } else if (node.nodeName.toUpperCase() === 'BR') {
+          out.value.text[lineNumber.value] = out.value.text[lineNumber.value] ?
+              out.value.text[lineNumber.value] + '\n' :
+              '\n';
         }
-
       });
     };
+
+    const getIconItemsInformation = (nodes) => {
+      // console.log('getIconItemsInformation', nodes);
+
+      nodes.forEach((node, index) => {
+        if (!node.classList?.contains('non-recursive')) {
+          if (node.classList?.contains('icon-wrapper')) {
+            if (index === 0) {
+              out.value.icon[node.id].position.index
+              lineNumber.value++
+            }
+            if (index > 0) {
+              if (out.value.text[lineNumber.value]) {
+                out.value.icon[node.id].position.index = out.value.text[lineNumber.value].length;
+              } else {
+                out.value.icon[node.id].position.index = 0;
+              }
+            }
+            const description = node.getElementsByClassName('description');
+            out.value.icon[node.id].text = description[0]?.outerText;
+            out.value.icon[node.id].position.line = lineNumber.value;
+          }
+        }
+      });
+    };
+
+    const printEditor = (output) => {
+      console.log(JSON.stringify(output));
+    }
 
     const toggle = () => {
       console.log('toggle');
@@ -153,9 +172,14 @@ export default defineComponent({
       outputArticle();
     };
 
-    const addIconArticleForm = () => {
+    const addIconArticleForm = (type) => {
       // 아이콘 영역 추가를 위한 eventBus
-      window.EventBus.emit('emitAddIconArticleForm', window.getSelection().getRangeAt(0));
+      window.EventBus.emit('emitAddIconArticleForm', {selection: window.getSelection().getRangeAt(0), type: type});
+    };
+
+    const loadArticle = () => {
+      // json 데이터를 Content로 파싱하는 eventBus
+      window.EventBus.emit('emitParseJsonToContent', articleData);
     };
 
     onMounted(() => {
@@ -171,6 +195,7 @@ export default defineComponent({
       addIconArticleForm,
       out,
       articleId,
+      loadArticle,
     };
   },
 });
@@ -178,11 +203,15 @@ export default defineComponent({
 
 <style>
 #app {
-  @apply h-screen w-screen bg-blue-100
+  @apply h-screen w-screen bg-blue-100 text-2xl
 }
 
 .icon-wrapper {
   @apply relative w-full my-2 bg-black text-white rounded-lg select-none
+}
+
+.type-icon {
+  @apply inline-block w-32 h-14
 }
 </style>
 

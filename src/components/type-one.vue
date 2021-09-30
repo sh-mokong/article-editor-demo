@@ -68,7 +68,7 @@ export default defineComponent({
       document.getElementById(id).remove();
     };
 
-    const addIconArticleForm = (range) => {
+    const addIconArticleForm = (range, type) => {
       // 아이콘 영역 추가
       const timeStamp = new Date().getTime();
       const selection = window.getSelection();
@@ -80,6 +80,12 @@ export default defineComponent({
 
       temp.setAttribute('contenteditable', false);
       temp.setAttribute('id', `icon-${timeStamp.toString()}`);
+      temp.dataset.iconType = type;
+
+      if (type === 'female') {
+        temp.classList.add('type-icon');
+      }
+
       if (selection) {
         range.deleteContents();
         range.insertNode(temp);
@@ -92,6 +98,7 @@ export default defineComponent({
             {
               id: `icon-${timeStamp.toString()}`,
               imgLink: '', message: message,
+              iconType: type,
             }).mount(`#icon-${timeStamp.toString()}`);
       });
     };
@@ -112,25 +119,36 @@ export default defineComponent({
       console.log('onMounted Type-One!');
 
       // 아이콘 영역 추가를 위한 eventBus 추가
-      window.EventBus.on('emitAddIconArticleForm', (range) => {
-        console.log('window.EventBus.on(\'emitIconArticleForm\')', range);
-        addIconArticleForm(range);
+      window.EventBus.on('emitAddIconArticleForm', ({selection, type}) => {
+        console.log('emitIconArticleForm', selection);
+        addIconArticleForm(selection, type);
       });
 
       // 아이콘 영역 삭제를 위한 eventBus 추가
       window.EventBus.on('emitRemoveIconArticleForm', (id) => {
-        console.log('window.EventBus.on(\'emitRemoveIconArticleForm\')', id);
+        console.log('emitRemoveIconArticleForm', id);
         removeIconArticleForm(id);
+      });
+
+      // json to element
+      window.EventBus.on('emitParseJsonToContent', (jsonData) => {
+        console.log('emitParseJsonToContent', jsonData);
+        parseJsonToContentEdit(jsonData);
       });
 
       if (props.contents !== null) {
         // contents json 값을 화면에 파싱
+        console.log(props.contents);
         parseJsonToContentEdit(props.contents);
       }
 
       element.value.addEventListener('paste', (event) => {
         let paste = (event.clipboardData || window.clipboardData).getData('text');
+
+        // TODO :: 리버스 하지 않고 위에서부터 에디터 위에서부터 차례대로 추가하기
         const temp = paste.split(/\n/g).reverse();
+        // const temp = paste.split(/\n/g);
+        console.log('element.value.addEventListener(\'paste\')',temp);
         const selection = window.getSelection();
 
         if (!selection.rangeCount) {
@@ -138,6 +156,7 @@ export default defineComponent({
         }
 
         selection.deleteFromDocument();
+        selection.getRangeAt(0).deleteContents();
 
         temp.forEach((text) => {
           let row = document.createElement('div');
@@ -146,6 +165,7 @@ export default defineComponent({
           } else {
             row.innerHTML = '<br>';
           }
+          // TODO ::
           selection.getRangeAt(0).insertNode(row);
         });
         event.preventDefault();
