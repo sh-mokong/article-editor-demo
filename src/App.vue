@@ -163,7 +163,7 @@ export default defineComponent({
         }
         console.log('TEXT: ' );
         console.log(text);
-        console.log('Icon: ' , output.icon);
+        console.log('Icon: ' , JSON.stringify(output.icon));
       }
     }
 

@@ -143,20 +143,17 @@ export default defineComponent({
       }
 
       element.value.addEventListener('paste', (event) => {
-        let paste = (event.clipboardData || window.clipboardData).getData('text');
-
-        // TODO :: 리버스 하지 않고 위에서부터 에디터 위에서부터 차례대로 추가하기
-        const temp = paste.split(/\n/g).reverse();
-        // const temp = paste.split(/\n/g);
-        console.log('element.value.addEventListener(\'paste\')',temp);
+        const paste = (event.clipboardData || window.clipboardData).getData('text');
+        const temp = paste.split(/\n/g);
         const selection = window.getSelection();
 
         if (!selection.rangeCount) {
           return false;
         }
 
-        selection.deleteFromDocument();
         selection.getRangeAt(0).deleteContents();
+
+        let rows = document.createElement('div');
 
         temp.forEach((text) => {
           let row = document.createElement('div');
@@ -165,9 +162,10 @@ export default defineComponent({
           } else {
             row.innerHTML = '<br>';
           }
-          // TODO ::
-          selection.getRangeAt(0).insertNode(row);
+          rows.appendChild(row);
         });
+
+        selection.getRangeAt(0).insertNode(rows);
         event.preventDefault();
       });
 
