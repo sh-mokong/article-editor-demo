@@ -18,7 +18,6 @@
     </div>
     <type-one
         :tag="'div'"
-        :editable="editable"
         v-model="article"
         :contents="contents"
         :article-id="articleId"
@@ -183,7 +182,9 @@ export default defineComponent({
 
     const addIconArticleForm = (type) => {
       // 아이콘 영역 추가를 위한 eventBus
-      window.EventBus.emit('emitAddIconArticleForm', {selection: window.getSelection().getRangeAt(0), type: type});
+      const selection = window.getSelection();
+      console.log(selection.anchorNode);
+      window.EventBus.emit('emitAddIconArticleForm', {type: type});
     };
 
     const loadArticle = () => {
@@ -202,6 +203,7 @@ export default defineComponent({
     watch(article, () => {
       console.log('change article.value');
     });
+
     return {
       editable,
       outputArticle,

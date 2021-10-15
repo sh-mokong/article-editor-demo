@@ -5,11 +5,13 @@
       ref="element"
       id="editor"
       tabindex="0"
-      :contenteditable="editable"
+      :contenteditable="true"
       :article-id="articleId"
       @input="update"
       @blur="update"
-      @click.self="getMousePointPosition($event)"
+      @focusin.self="focusIn"
+      @focusout.self="focusOut"
+      @click="getMousePointPosition($event)"
   >
     <div><br></div>
   </component>
@@ -24,10 +26,6 @@ export default defineComponent({
   emits: ['update:modelValue', 'toggleEditable', 'remove'],
   props: {
     tag: String,
-    editable: {
-      type: Boolean,
-      default: true,
-    },
     articleId: String,
     modelValue: Object,
     noHTML: {
@@ -45,8 +43,10 @@ export default defineComponent({
     },
   },
   setup(props, {emit}) {
+    const selection = window.getSelection();
     const element = ref();
     const article = ref({});
+    const isAddIconEnable = ref(false);
     const lastSelection = {
       event: '',
       selection: {
@@ -64,7 +64,7 @@ export default defineComponent({
       // TODO :: 기사 예상시간 처리하기
       // innerText 로 뽑아온 텍스트로는 기사와 자막의 구분이 안됨
       // 결국 텍스트 출력하는 로직과 동일하게 뽑아서 길이를 구해야 함
-      console.log('TODO :: 기사 예상시간 처리하기', element.value.children);
+      // console.log('TODO :: 기사 예상시간 처리하기', element.value.children);
       //
       // let html = props.noHTML ? element.value.innerText : element.value.innerHTML;
       // console.log(html);
@@ -81,11 +81,15 @@ export default defineComponent({
       document.getElementById(id).remove();
     };
 
-    const addIconArticleForm = (range, type) => {
-      console.log('addIconArticleForm', type, range);
+    const addIconArticleForm = (type) => {
+      console.log('22222', isAddIconEnable.value);
+      // if (!isAddIconEnable.value) {
+      //   return;
+      // }
+      console.log('addIconArticleForm', type, lastSelection.selection.range);
       // 아이콘 영역 추가
       const timeStamp = new Date().getTime();
-      const selection = window.getSelection();
+      const range = lastSelection.selection.range;
       const message = '';
 
       // vue component 를 마운트 시킬 pre wrapper 생성
@@ -101,9 +105,8 @@ export default defineComponent({
       }
 
       if (selection) {
-        range.deleteContents();
+        // range.deleteContents();
         range.insertNode(temp);
-        selection.removeAllRanges();
       }
 
       nextTick(() => {
@@ -130,12 +133,10 @@ export default defineComponent({
     };
 
     onMounted(() => {
-      console.log('onMounted Type-One!');
-
       // 아이콘 영역 추가를 위한 eventBus 추가
-      window.EventBus.on('emitAddIconArticleForm', ({selection, type}) => {
-        console.log('emitIconArticleForm', selection);
-        addIconArticleForm(selection, type);
+      window.EventBus.on('emitAddIconArticleForm', ({type}) => {
+        console.log('emitIconArticleForm', type);
+        addIconArticleForm(type);
       });
 
       // 아이콘 영역 삭제를 위한 eventBus 추가
@@ -157,14 +158,8 @@ export default defineComponent({
       }
 
       element.value.addEventListener('paste', (event) => {
-
-        // console.log(event, event.currentTarget.innerText, event.currentTarget.innerHTML);
-        //  navigator.clipboard.readText().then((data) => {
-        //    console.log(data);});
         const paste = (event.clipboardData || window.clipboardData).getData('text');
-        // console.log(paste);
         const temp = paste.split(/\n/g);
-        const selection = window.getSelection();
 
         if (!selection.rangeCount) {
           return false;
@@ -184,8 +179,9 @@ export default defineComponent({
           rows.appendChild(row);
         });
 
-        // TODO :: UNDO, REDO 생각하자
+        // TODO :: undo, redo 생각하자
         // TODO :: insertNode 는 undo, redo 가 안됨, 히스토리를 따로 관리해야 함
+        // TODO :: vuex? 아니면 입력마다 json 포맷으로 히스토리 생성 => json to element 구현 필요함
         selection.getRangeAt(0).insertNode(rows);
         event.preventDefault();
         currentContent();
@@ -194,14 +190,29 @@ export default defineComponent({
     });
 
     const getMousePointPosition = ($event) => {
-      const selection = window.getSelection();
+      if (!isAddIconEnable.value) {
+        return
+      }
+      console.log('11111');
+
       lastSelection.event = $event;
       lastSelection.selection.range = selection.getRangeAt(0);
       lastSelection.selection.index = selection.anchorOffset;
 
-      console.log($event, $event.currentTarget, $event.target);
+      console.log('getMousePointPosition', $event, $event.currentTarget, $event.target);
     };
 
+    const focusIn = () => {
+      console.log('focus In');
+      isAddIconEnable.value = true;
+      update();
+    }
+
+    const focusOut = () => {
+      console.log('focus Out');
+      isAddIconEnable.value = false;
+      update();
+    }
 
     return {
       element,
@@ -209,6 +220,8 @@ export default defineComponent({
       update,
       setClickActions,
       getMousePointPosition,
+      focusIn,
+      focusOut
     };
   },
 });
