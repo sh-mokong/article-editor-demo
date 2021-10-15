@@ -1,65 +1,69 @@
 <template class="p-3">
-  <div class="line-breaker top-bar non-recursive"
-       :class="topButtonVisible ? 'show-line':'hidden-line'"
-       @mouseenter="showTopButton"
-       @mouseleave="hideTopButton"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" class="break-button top-button" fill="none" viewBox="0 0 24 24"
-         stroke="currentColor"
-         @click="addNewLineTop"
+  <div  @click="clicked">
+    <div class="line-breaker top-bar non-recursive"
+         :class="topButtonVisible ? 'show-line':'hidden-line'"
+         @mouseenter="showTopButton"
+         @mouseleave="hideTopButton"
     >
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
-    </svg
-    >
-  </div>
-  <article
-      ref="root"
-      :contenteditable="editable"
-      class="bg-black text-white rounded-lg flex outline-none p-1"
-      :class="[classes, status ? '':'disabled']"
-      @click="clicked"
-      :icon-type="iconType"
-  >
-    <div class="inline-block w-28 align-top flex-grow-0 non-recursive" contenteditable="false">
-      <img v-if="iconType === 'male'" class="w-14 h-14" src="@/assets/img/img_1.png" alt="">
-      <img v-else class="w-14 h-14" src="@/assets/img/img_2.png" alt="">
+      <svg xmlns="http://www.w3.org/2000/svg" class="break-button top-button" fill="none" viewBox="0 0 24 24"
+           stroke="currentColor"
+           @click="addNewLineTop"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg
+      >
     </div>
-
-    <div
-        v-if="iconType === 'male'"
-        class="inline-block bg-white text-black align-top ml-5 p-2 w-10/12 flex-grow"
-        :contenteditable="false">
-      <div class="description outline-none"
-           :contenteditable="editable"
-           @keypress="enterKeyEvent">
-        {{ message }}
+    <article
+        ref="root"
+        :contenteditable="editable"
+        class="bg-black text-white rounded-lg flex outline-none p-1"
+        :class="[classes, status ? '':'disabled']"
+        :icon-type="iconType"
+    >
+      <div class="inline-block w-28 align-top flex-grow-0 non-recursive" contenteditable="false">
+        <img v-if="iconType === 'male'" class="w-14 h-14" src="@/assets/img/img_1.png" alt="">
+        <img v-else class="w-14 h-14" src="@/assets/img/img_2.png" alt="">
       </div>
-    </div>
-    <div
-        class="inline-block w-32 h-auto py-2 align-top ml-2 text-center flex-grow-0 non-recursive"
-        contenteditable="false">
-      <button
+
+      <div
           v-if="iconType === 'male'"
-          type="button" class="block border-white text-white border-2 mx-auto m-1 p-1 text-base" @click="toggle">edit:{{
-          editable
-        }}
-      </button>
-      <button type="button" class="block border-white text-white border-2 mx-auto m-1 p-1 text-base" @click="remove"> X</button>
+          class="inline-block bg-white text-black align-top ml-5 p-2 w-10/12 flex-grow"
+          :contenteditable="false">
+        <div class="description outline-none"
+             :contenteditable="editable"
+             @keypress="enterKeyEvent">
+          {{ message }}
+        </div>
+      </div>
+      <div
+          class="inline-block w-32 h-auto py-2 align-top ml-2 text-center flex-grow-0 non-recursive"
+          contenteditable="false">
+        <button
+            v-if="iconType === 'male'"
+            type="button" class="block border-white text-white border-2 mx-auto m-1 p-1 text-base" @click="toggle">
+          edit:{{
+            editable
+          }}
+        </button>
+        <button type="button" class="block border-white text-white border-2 mx-auto m-1 p-1 text-base" @click="remove">
+          X
+        </button>
+      </div>
+    </article>
+    <div class="line-breaker bottom-bar non-recursive"
+         :class="bottomButtonVisible ? 'show-line':'hidden-line'"
+         @mouseenter="showBottomButton"
+         @mouseleave="hideBottomButton"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="break-button bottom-button" fill="none" viewBox="0 0 24 24"
+           stroke="currentColor"
+           @click="addNewLineBottom">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
     </div>
-  </article>
-  <div class="line-breaker bottom-bar non-recursive"
-       :class="bottomButtonVisible ? 'show-line':'hidden-line'"
-       @mouseenter="showBottomButton"
-       @mouseleave="hideBottomButton"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" class="break-button bottom-button" fill="none" viewBox="0 0 24 24"
-         stroke="currentColor"
-         @click="addNewLineBottom">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-    </svg>
   </div>
 </template>
 
@@ -104,6 +108,7 @@ export default defineComponent({
     };
 
     const clicked = () => {
+      console.log('icon article form clicked!!! ');
       status.value = !status.value;
     };
 
@@ -222,5 +227,10 @@ export default defineComponent({
 
 .hidden-line {
   opacity: 0;
+}
+
+.separator {
+  font-size: 0;
+  height: 0;
 }
 </style>

@@ -7,8 +7,14 @@
       <button class="btn-icon" type="button" @click="addIconArticleForm('female')">
         <img src="@/assets/img/img_2.png" class="w-10 h-10" alt="">
       </button>
-      <button type="button" @click="outputArticle('json')" class="m-2">output JSON</button>
-      <button type="button" @click="outputArticle('text')" class="m-2">output Text</button>
+      <button type="button" @click="outputArticle('json')" class="m-2">JSON</button>
+      <button type="button" @click="outputArticle('text')" class="m-2">Text</button>
+      <select v-model="fontFamily">
+        <option value="font-sans">font-sans</option>
+        <option value="font-serif">font-serif</option>
+        <option value="font-mono">font-mono</option>
+      </select>
+<!--      <span class="float-right">예상시간: {{expectedTime}}</span>-->
     </div>
     <type-one
         :tag="'div'"
@@ -16,6 +22,7 @@
         v-model="article"
         :contents="contents"
         :article-id="articleId"
+        :class="fontFamily"
     ></type-one>
   </div>
 </template>
@@ -23,7 +30,7 @@
 <script>
 
 import TypeOne from '@/components/type-one';
-import {defineComponent, ref, onMounted} from 'vue';
+import {defineComponent, ref, onMounted, watch} from 'vue';
 
 export default defineComponent({
   name: 'App',
@@ -42,21 +49,20 @@ export default defineComponent({
   },
   emits: [],
   setup() {
-    const article = ref();
+    const article = ref({});
     const articleId = ref();
     const articleData = ref();
     const editable = ref(true);
     const out = ref();
     const lineNumber = ref(0);
     const tempParentNode = ref();
+    const fontFamily = ref('font-sans');
 
     const outputArticle = (type) => {
-      // console.log(article.value);
       let output = '';
       if (type !== '' && article.value) {
         output = article.value.children;
       }
-      // console.log(`outputArticle: ${type}`, output);
 
       // 초기화
       if (output !== '') {
@@ -70,18 +76,15 @@ export default defineComponent({
         getExtractArticleText(output);
       }
       printEditor(out.value, type);
-      // console.log(out.value);
     };
 
     const getExtractArticleText = (nodes) => {
-      // console.log('getExtractArticleText', nodes);
-
       nodes.forEach((node) => {
         /**
          * 화면에서 한 라인의 기준은 div
          * 붙여넣기 하다보면 보이는것으론 똑같지만 dom tree 상으로는 div 가 중첩이 될 수 있음
          * 자식 node 중에 element 가 없다면 tree 구조의 끝을 의미
-         * node 객체의 의 끝은 #text 이거나 br
+         * node 객체의 끝은 #text 이거나 br
          */
         if (node.nodeName.toUpperCase() !== 'DIV') {
           if (node.parentNode.nodeName.toUpperCase() === 'DIV') {
@@ -188,10 +191,17 @@ export default defineComponent({
       window.EventBus.emit('emitParseJsonToContent', articleData);
     };
 
+    const expectedTime = () => {
+      return 0;
+    }
+
     onMounted(() => {
       articleId.value = `article-${new Date().getTime().toString()}`;
     });
 
+    watch(article, () => {
+      console.log('change article.value');
+    });
     return {
       editable,
       outputArticle,
@@ -202,6 +212,8 @@ export default defineComponent({
       out,
       articleId,
       loadArticle,
+      expectedTime,
+      fontFamily,
     };
   },
 });

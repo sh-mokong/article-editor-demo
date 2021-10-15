@@ -9,6 +9,7 @@
       :article-id="articleId"
       @input="update"
       @blur="update"
+      @click.self="getMousePointPosition($event)"
   >
     <div><br></div>
   </component>
@@ -46,6 +47,13 @@ export default defineComponent({
   setup(props, {emit}) {
     const element = ref();
     const article = ref({});
+    const lastSelection = {
+      event: '',
+      selection: {
+        range: 0,
+        index: 0,
+      },
+    };
 
     const setClickActions = () => {
       console.log(props.editable);
@@ -53,6 +61,11 @@ export default defineComponent({
     };
 
     const currentContent = () => {
+      // TODO :: 기사 예상시간 처리하기
+      // innerText 로 뽑아온 텍스트로는 기사와 자막의 구분이 안됨
+      // 결국 텍스트 출력하는 로직과 동일하게 뽑아서 길이를 구해야 함
+      console.log('TODO :: 기사 예상시간 처리하기', element.value.children);
+      //
       // let html = props.noHTML ? element.value.innerText : element.value.innerHTML;
       // console.log(html);
       // html = element.value.innerHTML;
@@ -69,6 +82,7 @@ export default defineComponent({
     };
 
     const addIconArticleForm = (range, type) => {
+      console.log('addIconArticleForm', type, range);
       // 아이콘 영역 추가
       const timeStamp = new Date().getTime();
       const selection = window.getSelection();
@@ -143,7 +157,12 @@ export default defineComponent({
       }
 
       element.value.addEventListener('paste', (event) => {
+
+        // console.log(event, event.currentTarget.innerText, event.currentTarget.innerHTML);
+        //  navigator.clipboard.readText().then((data) => {
+        //    console.log(data);});
         const paste = (event.clipboardData || window.clipboardData).getData('text');
+        // console.log(paste);
         const temp = paste.split(/\n/g);
         const selection = window.getSelection();
 
@@ -165,17 +184,31 @@ export default defineComponent({
           rows.appendChild(row);
         });
 
+        // TODO :: UNDO, REDO 생각하자
+        // TODO :: insertNode 는 undo, redo 가 안됨, 히스토리를 따로 관리해야 함
         selection.getRangeAt(0).insertNode(rows);
         event.preventDefault();
+        currentContent();
       });
 
     });
+
+    const getMousePointPosition = ($event) => {
+      const selection = window.getSelection();
+      lastSelection.event = $event;
+      lastSelection.selection.range = selection.getRangeAt(0);
+      lastSelection.selection.index = selection.anchorOffset;
+
+      console.log($event, $event.currentTarget, $event.target);
+    };
+
 
     return {
       element,
       article,
       update,
       setClickActions,
+      getMousePointPosition,
     };
   },
 });
@@ -189,5 +222,8 @@ export default defineComponent({
 .editor-body::v-deep(p) {
   line-height: 1rem;
   height: 1.5rem;
+}
+#editor > * {
+  font-family: inherit;
 }
 </style>

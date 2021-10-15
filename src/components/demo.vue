@@ -2,10 +2,10 @@
   <div>
     <div aria-labelledby="아이콘 목록" class="border-2 border-gray-400" role="toolbar">
       <button class="btn-icon" type="button" @click="addIconForm">
-        <img src="../assets/img/img_1.png">
+        <img src="../assets/img/img_1.png" alt="">
       </button>
       <button class="btn-icon" type="button" @click="addIconForm">
-        <img src="../assets/img/img_2.png">
+        <img src="../assets/img/img_2.png" alt="">
       </button>
     </div>
     <div
@@ -59,30 +59,10 @@ export default {
       if (document.getSelection()) {
         position.range.deleteContents();
         position.range.insertNode(temp);
-        selection.removeAllRanges();
 
       }
 
 
-      // const componentDefinition = defineComponent({ extends: defineComponent({ ...component }), data: () => ({params: params}), created: function() { componentInstance = this.$root }});
-      // createApp(componentDefinition).mount(container);
-
-
-      // const selection = window.getSelection();
-      // const range = selection.getRangeAt(0);
-      // let ComponentClass = resolveComponent(IconForm);
-      // let instance = renderh('pre',{}, ComponentClass);
-      // let instance = new ComponentClass();
-      // let instance = ComponentClass.$mount(); // pass nothing
-      //
-
-      // console.log(instance);
-      //
-      // if (document.getSelection()) {
-      //   range.deleteContents();
-      //   range.insertNode(instance);
-      //   window.getSelection().removeAllRanges();
-      // }
     };
 
     const getMousePointPosition = ($event) => {
