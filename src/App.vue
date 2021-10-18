@@ -14,7 +14,7 @@
         <option value="font-serif">font-serif</option>
         <option value="font-mono">font-mono</option>
       </select>
-<!--      <span class="float-right">예상시간: {{expectedTime}}</span>-->
+      <!--      <span class="float-right">예상시간: {{expectedTime}}</span>-->
     </div>
     <type-one
         :tag="'div'"
@@ -100,16 +100,6 @@ export default defineComponent({
          */
         if (node.childNodes.length > 0 && !node.classList?.contains('non-recursive')) {
           if (node.classList?.contains('icon-wrapper')) {
-            // 아이콘 영역이 나오면 해당 아이콘의 정보를 생성
-            if (!out.value.icon[node.id]) {
-              out.value.icon[node.id] = {
-                iconType: '',
-                text: '',
-                position: {line: 0, index: 0},
-              };
-            }
-            out.value.icon[node.id].iconType = node.dataset.iconType;
-
             // 아이콘 영역은 별도의 함수에서 처리
             getIconItemsInformation(nodes);
           } else {
@@ -131,15 +121,20 @@ export default defineComponent({
     };
 
     const getIconItemsInformation = (nodes) => {
-      // console.log('getIconItemsInformation', nodes);
-
       nodes.forEach((node, index) => {
         if (!node.classList?.contains('non-recursive')) {
           if (node.classList?.contains('icon-wrapper')) {
-            if (index === 0) {
-              out.value.icon[node.id].position.index
-              lineNumber.value++
+
+            // 아이콘 영역이 나오면 해당 아이콘의 정보를 생성
+            if (!out.value.icon[node.id]) {
+              out.value.icon[node.id] = {
+                iconType: '',
+                text: '',
+                position: {line: 0, index: 0},
+              };
             }
+            out.value.icon[node.id].iconType = node.dataset.iconType;
+
             if (index > 0) {
               if (out.value.text[lineNumber.value]) {
                 out.value.icon[node.id].position.index = out.value.text[lineNumber.value].length;
@@ -147,9 +142,11 @@ export default defineComponent({
                 out.value.icon[node.id].position.index = 0;
               }
             }
+
             const description = node.getElementsByClassName('description');
             out.value.icon[node.id].text = description[0]?.outerText;
-            out.value.icon[node.id].position.line = lineNumber.value;
+            // 처음 시작이 아이콘 영역으로 시작하는 경우 라인넘버 예외처리
+            out.value.icon[node.id].position.line = lineNumber.value === 0 ? 1 : lineNumber.value;
           }
         }
       });
@@ -163,11 +160,11 @@ export default defineComponent({
         for (let textKey in output.text) {
           text += output.text[textKey] + '\r\n';
         }
-        console.log('TEXT: ' );
+        console.log('TEXT: ');
         console.log(text);
-        console.log('Icon: ' , JSON.stringify(output.icon));
+        console.log('Icon: ', JSON.stringify(output.icon));
       }
-    }
+    };
 
     const toggle = () => {
       console.log('toggle');
@@ -194,7 +191,7 @@ export default defineComponent({
 
     const expectedTime = () => {
       return 0;
-    }
+    };
 
     onMounted(() => {
       articleId.value = `article-${new Date().getTime().toString()}`;

@@ -73,6 +73,11 @@ export default defineComponent({
     };
 
     const update = () => {
+      // if (selection) {
+      //   lastSelection.selection.range = selection.getRangeAt(0);
+      //   lastSelection.selection.index = selection.anchorOffset;
+      // }
+
       emit('update:modelValue', currentContent());
     };
 
