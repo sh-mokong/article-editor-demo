@@ -11,6 +11,8 @@
       @blur="update"
       @focusin.self="focusIn"
       @focusout.self="focusOut"
+      @mouseleave="setMousePointPosition"
+      @mouseout="setMousePointPosition"
       @click="getMousePointPosition($event)"
   >
     <div><br></div>
@@ -73,11 +75,6 @@ export default defineComponent({
     };
 
     const update = () => {
-      // if (selection) {
-      //   lastSelection.selection.range = selection.getRangeAt(0);
-      //   lastSelection.selection.index = selection.anchorOffset;
-      // }
-
       emit('update:modelValue', currentContent());
     };
 
@@ -215,8 +212,14 @@ export default defineComponent({
 
     const focusOut = () => {
       console.log('focus Out');
-      isAddIconEnable.value = false;
       update();
+    }
+
+    const setMousePointPosition = () => {
+      if (selection) {
+        lastSelection.selection.range = selection.getRangeAt(0);
+        lastSelection.selection.index = selection.anchorOffset;
+      }
     }
 
     return {
@@ -226,7 +229,8 @@ export default defineComponent({
       setClickActions,
       getMousePointPosition,
       focusIn,
-      focusOut
+      focusOut,
+      setMousePointPosition
     };
   },
 });
