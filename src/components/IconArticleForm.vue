@@ -110,7 +110,7 @@ export default defineComponent({
     const clicked = () => {
       console.log('icon article form clicked!!! ');
       status.value = !status.value;
-      window.EventBus.emit('emitSelectIconArticleForm', {id:props.id, status: false});
+      window.EventBus.emit('emitSelectIconArticleForm', {status: false});
     };
 
     const toggle = () => {

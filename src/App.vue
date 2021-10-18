@@ -1,10 +1,12 @@
 <template>
   <div id="app" class="relative">
     <div aria-labelledby="아이콘 목록" class="border-2 border-gray-400 relative p-2" role="toolbar">
-      <button class="btn-icon" type="button" @click="addIconArticleForm('male')"  :disabled="!iconAddEnable">
+      <button class="btn-icon" :class="iconAddEnable === false ? 'cursor-not-allowed':''" type="button"
+              @click="addIconArticleForm('male')" :disabled="!iconAddEnable">
         <img src="@/assets/img/img_1.png" class="w-10 h-10" alt="">
       </button>
-      <button class="btn-icon" type="button" @click="addIconArticleForm('female')"  :disabled="!iconAddEnable">
+      <button class="btn-icon " :class="iconAddEnable === false ? 'cursor-not-allowed':''" type="button"
+              @click="addIconArticleForm('female')" :disabled="!iconAddEnable">
         <img src="@/assets/img/img_2.png" class="w-10 h-10" alt="">
       </button>
       <button type="button" @click="outputArticle('json')" class="m-2">JSON</button>
@@ -196,8 +198,8 @@ export default defineComponent({
 
     onMounted(() => {
       // 아이콘 영역 선택 이벤트
-      window.EventBus.on('emitSelectIconArticleForm', ({id, status}) => {
-        console.log('emitSelectIconArticleForm', id, status);
+      window.EventBus.on('emitSelectIconArticleForm', ({status}) => {
+        console.log('emitSelectIconArticleForm', status);
         iconAddEnable.value = status;
       });
 
@@ -220,7 +222,7 @@ export default defineComponent({
       loadArticle,
       expectedTime,
       fontFamily,
-      iconAddEnable
+      iconAddEnable,
     };
   },
 });
