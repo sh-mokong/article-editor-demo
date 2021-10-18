@@ -63,6 +63,10 @@ export default defineComponent({
     };
 
     const currentContent = () => {
+      if (selection) {
+        lastSelection.selection.range = selection.getRangeAt(0);
+        lastSelection.selection.index = selection.anchorOffset;
+      }
       // TODO :: 기사 예상시간 처리하기
       // innerText 로 뽑아온 텍스트로는 기사와 자막의 구분이 안됨
       // 결국 텍스트 출력하는 로직과 동일하게 뽑아서 길이를 구해야 함
@@ -207,7 +211,7 @@ export default defineComponent({
     const focusIn = () => {
       console.log('focus In');
       isAddIconEnable.value = true;
-      update();
+      window.EventBus.emit('emitSelectIconArticleForm', {status: true});
     }
 
     const focusOut = () => {
@@ -216,10 +220,7 @@ export default defineComponent({
     }
 
     const setMousePointPosition = () => {
-      if (selection) {
-        lastSelection.selection.range = selection.getRangeAt(0);
-        lastSelection.selection.index = selection.anchorOffset;
-      }
+
     }
 
     return {

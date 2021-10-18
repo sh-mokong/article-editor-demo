@@ -1,10 +1,10 @@
 <template>
   <div id="app" class="relative">
     <div aria-labelledby="아이콘 목록" class="border-2 border-gray-400 relative p-2" role="toolbar">
-      <button class="btn-icon" type="button" @click="addIconArticleForm('male')">
+      <button class="btn-icon" type="button" @click="addIconArticleForm('male')"  :disabled="!iconAddEnable">
         <img src="@/assets/img/img_1.png" class="w-10 h-10" alt="">
       </button>
-      <button class="btn-icon" type="button" @click="addIconArticleForm('female')">
+      <button class="btn-icon" type="button" @click="addIconArticleForm('female')"  :disabled="!iconAddEnable">
         <img src="@/assets/img/img_2.png" class="w-10 h-10" alt="">
       </button>
       <button type="button" @click="outputArticle('json')" class="m-2">JSON</button>
@@ -54,8 +54,9 @@ export default defineComponent({
     const editable = ref(true);
     const out = ref();
     const lineNumber = ref(0);
-    const tempParentNode = ref();
     const fontFamily = ref('font-sans');
+    const iconAddEnable = ref(true);
+    let tempParentNode = null;
 
     const outputArticle = (type) => {
       let output = '';
@@ -69,7 +70,7 @@ export default defineComponent({
           text: {},
           icon: {},
         };
-        tempParentNode.value = '';
+        tempParentNode = null;
         lineNumber.value = 0;
 
         getExtractArticleText(output);
@@ -87,8 +88,8 @@ export default defineComponent({
          */
         if (node.nodeName.toUpperCase() !== 'DIV') {
           if (node.parentNode.nodeName.toUpperCase() === 'DIV') {
-            if (tempParentNode.value?.outerText !== node.parentNode.outerText) {
-              tempParentNode.value = nodes[0].parentNode;
+            if (tempParentNode?.outerText !== node.parentNode.outerText) {
+              tempParentNode = nodes[0].parentNode;
               lineNumber.value++;
             }
           }
@@ -194,6 +195,12 @@ export default defineComponent({
     };
 
     onMounted(() => {
+      // 아이콘 영역 선택 이벤트
+      window.EventBus.on('emitSelectIconArticleForm', ({id, status}) => {
+        console.log('emitSelectIconArticleForm', id, status);
+        iconAddEnable.value = status;
+      });
+
       articleId.value = `article-${new Date().getTime().toString()}`;
     });
 
@@ -213,6 +220,7 @@ export default defineComponent({
       loadArticle,
       expectedTime,
       fontFamily,
+      iconAddEnable
     };
   },
 });
