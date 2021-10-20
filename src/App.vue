@@ -11,6 +11,8 @@
       </button>
       <button type="button" @click="outputArticle('json')" class="m-2">JSON</button>
       <button type="button" @click="outputArticle('text')" class="m-2">Text</button>
+      <button type="button" @click="undo" class="m-2">Undo</button>
+      <button type="button" @click="redo" class="m-2">Redo</button>
       <select v-model="fontFamily">
         <option value="font-sans">font-sans</option>
         <option value="font-serif">font-serif</option>
@@ -104,7 +106,8 @@ export default defineComponent({
         if (node.childNodes.length > 0 && !node.classList?.contains('non-recursive')) {
           if (node.classList?.contains('icon-wrapper')) {
             // 아이콘 영역은 별도의 함수에서 처리
-            getIconItemsInformation(nodes);
+            console.log('asdfasdfsaasdfsadf', node);
+            getIconItemsInformation(node, lineNumber.value);
           } else {
             getExtractArticleText(node.childNodes);
           }
@@ -123,36 +126,35 @@ export default defineComponent({
       });
     };
 
-    const getIconItemsInformation = (nodes) => {
-      nodes.forEach((node, index) => {
-        if (!node.classList?.contains('non-recursive')) {
-          if (node.classList?.contains('icon-wrapper')) {
+    const getIconItemsInformation = (nodes, line) => {
+      const iconID = nodes.id;
+      const iconCode = nodes.dataset.iconType;
+      const description = nodes.getElementsByClassName('description');
 
-            // 아이콘 영역이 나오면 해당 아이콘의 정보를 생성
-            if (!out.value.icon[node.id]) {
-              out.value.icon[node.id] = {
-                iconType: '',
-                text: '',
-                position: {line: 0, index: 0},
-              };
-            }
-            out.value.icon[node.id].iconType = node.dataset.iconType;
+      console.log('getIconItemsInformation', iconID, iconCode, description);
 
-            if (index > 0) {
-              if (out.value.text[lineNumber.value]) {
-                out.value.icon[node.id].position.index = out.value.text[lineNumber.value].length;
-              } else {
-                out.value.icon[node.id].position.index = 0;
-              }
-            }
+      // 아이콘 영역이 나오면 해당 아이콘의 정보를 생성
+      if (!out.value.icon[iconID]) {
+        out.value.icon[iconID] = {
+          iconType: '',
+          text: '',
+          position: {line: 0, index: 0},
+        };
+      }
 
-            const description = node.getElementsByClassName('description');
-            out.value.icon[node.id].text = description[0]?.outerText;
-            // 처음 시작이 아이콘 영역으로 시작하는 경우 라인넘버 예외처리
-            out.value.icon[node.id].position.line = lineNumber.value === 0 ? 1 : lineNumber.value;
-          }
-        }
-      });
+      out.value.icon[iconID].iconType = iconCode;
+
+      //
+      if (out.value.text[line]) {
+        out.value.icon[iconID].position.index = out.value.text[line].length;
+      } else {
+        out.value.icon[iconID].position.index = 0;
+      }
+
+      out.value.icon[iconID].text = description[0]?.outerText;
+      // 처음 시작이 아이콘 영역으로 시작하는 경우 라인넘버 예외처리
+      out.value.icon[iconID].position.line = line === 0 ? 1 : line;
+
     };
 
     const printEditor = (output, type) => {
@@ -196,10 +198,18 @@ export default defineComponent({
       return 0;
     };
 
+    const undo = () => {
+      window.EventBus.emit('emitUndo');
+    }
+
+    const redo = () => {
+      window.EventBus.emit('emitRedo');
+    }
+
     onMounted(() => {
       // 아이콘 영역 선택 이벤트
       window.EventBus.on('emitSelectIconArticleForm', ({status}) => {
-        console.log('emitSelectIconArticleForm', status);
+        console.log('on:emitSelectIconArticleForm', status);
         iconAddEnable.value = status;
       });
 
@@ -223,6 +233,8 @@ export default defineComponent({
       expectedTime,
       fontFamily,
       iconAddEnable,
+      undo,
+      redo
     };
   },
 });

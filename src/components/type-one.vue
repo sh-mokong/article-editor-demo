@@ -11,9 +11,8 @@
       @blur="update"
       @focusin.self="focusIn"
       @focusout.self="focusOut"
-      @mouseleave="setMousePointPosition"
-      @mouseout="setMousePointPosition"
       @click="getMousePointPosition($event)"
+      @paste="pasteEvent"
   >
     <div><br></div>
   </component>
@@ -48,7 +47,7 @@ export default defineComponent({
     const selection = window.getSelection();
     const element = ref();
     const article = ref({});
-    const isAddIconEnable = ref(false);
+    const history = {article: [], index: 0};
     const lastSelection = {
       event: '',
       selection: {
@@ -57,13 +56,9 @@ export default defineComponent({
       },
     };
 
-    const setClickActions = () => {
-      console.log(props.editable);
-      emit('toggleEditable');
-    };
 
     const currentContent = () => {
-      if (selection) {
+      if (selection && selection.anchorNode !== null) {
         lastSelection.selection.range = selection.getRangeAt(0);
         lastSelection.selection.index = selection.anchorOffset;
       }
@@ -82,23 +77,21 @@ export default defineComponent({
       emit('update:modelValue', currentContent());
     };
 
+    // 아이콘 영역 삭제
     const removeIconArticleForm = (id) => {
       console.log('remove Type-One', id);
       document.getElementById(id).remove();
+      window.EventBus.emit('emit:emitSelectIconArticleForm', {status: true});
     };
 
+    // 아이콘 영역 추가
     const addIconArticleForm = (type) => {
-      console.log('22222', isAddIconEnable.value);
-      // if (!isAddIconEnable.value) {
-      //   return;
-      // }
       console.log('addIconArticleForm', type, lastSelection.selection.range);
-      // 아이콘 영역 추가
       const timeStamp = new Date().getTime();
       const range = lastSelection.selection.range;
       const message = '';
 
-      // vue component 를 마운트 시킬 pre wrapper 생성
+      // vue component 를 마운트 시킬 wrapper 생성
       const temp = document.createElement('div');
       temp.classList.add('icon-wrapper');
 
@@ -126,112 +119,113 @@ export default defineComponent({
       });
     };
 
-    const parseJsonToContentEdit = (contents) => {
-      // TODO :: content 데이터가 있는 경우 화면에 렌더링
-      for (const property in contents) {
-        console.log(`${property}: ${contents[property]}`);
-      }
-      makeDomNodeTree('div');
-    };
-
-    const makeDomNodeTree = (node) => {
-      console.log(node);
-    };
+    // const parseJsonToContentEdit = (contents) => {
+    //   // TODO :: content 데이터가 있는 경우 화면에 렌더링
+    //   for (const property in contents) {
+    //     console.log(`${property}: ${contents[property]}`);
+    //   }
+    //   makeDomNodeTree('div');
+    // };
+    //
+    // const makeDomNodeTree = (node) => {
+    //   console.log(node);
+    // };
 
     onMounted(() => {
       // 아이콘 영역 추가를 위한 eventBus 추가
       window.EventBus.on('emitAddIconArticleForm', ({type}) => {
-        console.log('emitIconArticleForm', type);
+        console.log('on:emitIconArticleForm', type);
         addIconArticleForm(type);
       });
 
       // 아이콘 영역 삭제를 위한 eventBus 추가
       window.EventBus.on('emitRemoveIconArticleForm', (id) => {
-        console.log('emitRemoveIconArticleForm', id);
+        // TODO :: 아이콘 삭제 시 커서위치를 아이콘 시작 위치로 설정하기
+        console.log('on:emitRemoveIconArticleForm', id);
         removeIconArticleForm(id);
+      });
+
+      // Undo
+      window.EventBus.on('emitUndo', () => {
+        console.log('on:emitUndo');
+      });
+
+      // Redo
+      window.EventBus.on('emitRedo', () => {
+        console.log('on:emitRedo');
       });
 
       // json to element
       window.EventBus.on('emitParseJsonToContent', (jsonData) => {
-        console.log('emitParseJsonToContent', jsonData);
-        parseJsonToContentEdit(jsonData);
+        console.log('on:emitParseJsonToContent', jsonData);
+        // parseJsonToContentEdit(jsonData);
       });
 
       if (props.contents !== null) {
         // contents json 값을 화면에 파싱
         console.log(props.contents);
-        parseJsonToContentEdit(props.contents);
+        // parseJsonToContentEdit(props.contents);
       }
-
-      element.value.addEventListener('paste', (event) => {
-        const paste = (event.clipboardData || window.clipboardData).getData('text');
-        const temp = paste.split(/\n/g);
-
-        if (!selection.rangeCount) {
-          return false;
-        }
-
-        selection.getRangeAt(0).deleteContents();
-
-        let rows = document.createElement('div');
-
-        temp.forEach((text) => {
-          let row = document.createElement('div');
-          if (text) {
-            row.innerText = text.toString();
-          } else {
-            row.innerHTML = '<br>';
-          }
-          rows.appendChild(row);
-        });
-
-        // TODO :: undo, redo 생각하자
-        // TODO :: insertNode 는 undo, redo 가 안됨, 히스토리를 따로 관리해야 함
-        // TODO :: vuex? 아니면 입력마다 json 포맷으로 히스토리 생성 => json to element 구현 필요함
-        selection.getRangeAt(0).insertNode(rows);
-        event.preventDefault();
-        currentContent();
-      });
-
     });
 
     const getMousePointPosition = ($event) => {
-      if (!isAddIconEnable.value) {
-        return
-      }
-      console.log('11111');
-
       lastSelection.event = $event;
-      lastSelection.selection.range = selection.getRangeAt(0);
-      lastSelection.selection.index = selection.anchorOffset;
-
-      console.log('getMousePointPosition', $event, $event.currentTarget, $event.target);
+      if (selection && selection.anchorNode !== null) {
+        lastSelection.selection.range = selection.getRangeAt(0);
+        lastSelection.selection.index = selection.anchorOffset;
+        console.log('getMousePointPosition', $event, $event.currentTarget, $event.target);
+      }
     };
 
     const focusIn = () => {
       console.log('focus In');
-      isAddIconEnable.value = true;
       window.EventBus.emit('emitSelectIconArticleForm', {status: true});
-    }
+      console.log('emit:emitSelectIconArticleForm');
+    };
 
     const focusOut = () => {
       console.log('focus Out');
       update();
-    }
+    };
 
-    const setMousePointPosition = () => {
+    const pasteEvent = ($event) => {
+      const paste = ($event.clipboardData || window.clipboardData).getData('text');
+      const temp = paste.split(/\n/g);
 
-    }
+      if (!selection.rangeCount) {
+        return false;
+      }
 
+      selection.getRangeAt(0).deleteContents();
+
+      let rows = document.createElement('div');
+
+      temp.forEach((text) => {
+        let row = document.createElement('div');
+        if (text) {
+          row.innerText = text.toString();
+        } else {
+          row.innerHTML = '<br>';
+        }
+        rows.appendChild(row);
+      });
+
+      // TODO :: undo, redo 생각하자
+      // TODO :: insertNode 는 undo, redo 가 안됨, 히스토리를 따로 관리해야 함
+      // TODO :: vuex? 아니면 입력마다 json 포맷으로 히스토리 생성 => json to element 구현 필요함
+      selection.getRangeAt(0).insertNode(rows);
+      $event.preventDefault();
+      currentContent();
+    };
     return {
       element,
       article,
       update,
-      setClickActions,
       getMousePointPosition,
       focusIn,
       focusOut,
-      setMousePointPosition
+      pasteEvent,
+      history,
     };
   },
 });
@@ -246,6 +240,7 @@ export default defineComponent({
   line-height: 1rem;
   height: 1.5rem;
 }
+
 #editor > * {
   font-family: inherit;
 }
