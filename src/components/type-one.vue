@@ -8,7 +8,6 @@
       :contenteditable="true"
       :article-id="articleId"
       @input="update"
-      @blur="update"
       @focusin.self="focusIn"
       @focusout.self="focusOut"
       @click="getMousePointPosition($event)"
@@ -19,7 +18,7 @@
 </template>
 
 <script>
-import {createApp, defineComponent, nextTick, onMounted, ref} from 'vue';
+import {createApp, defineComponent, nextTick, onMounted, ref, watch} from 'vue';
 import IconArticleForm from './IconArticleForm';
 
 export default defineComponent({
@@ -29,14 +28,6 @@ export default defineComponent({
     tag: String,
     articleId: String,
     modelValue: Object,
-    noHTML: {
-      type: Boolean,
-      default: true,
-    },
-    noNL: {
-      type: Boolean,
-      default: false,
-    },
     contents: {
       type: Object,
       default: () => {
@@ -46,7 +37,7 @@ export default defineComponent({
   setup(props, {emit}) {
     const selection = window.getSelection();
     const element = ref();
-    const article = ref({});
+    const article = ref(props.modelValue);
     const history = {article: [], index: 0};
     const lastSelection = {
       event: '',
@@ -62,14 +53,21 @@ export default defineComponent({
         lastSelection.selection.range = selection.getRangeAt(0);
         lastSelection.selection.index = selection.anchorOffset;
       }
-      // TODO :: 기사 예상시간 처리하기
-      // innerText 로 뽑아온 텍스트로는 기사와 자막의 구분이 안됨
-      // 결국 텍스트 출력하는 로직과 동일하게 뽑아서 길이를 구해야 함
-      // console.log('TODO :: 기사 예상시간 처리하기', element.value.children);
-      //
-      // let html = props.noHTML ? element.value.innerText : element.value.innerHTML;
-      // console.log(html);
-      // html = element.value.innerHTML;
+      console.log('currentContent');
+
+      /**
+       * TODO :: 기사 예상시간 처리하기
+       * 아이콘 영역을 제거한 dom tree 에서 innerText 뽑아서 처리
+       */
+
+      // undo/redo 용 히스토리 생성
+      // TODO :: 히스토리를 다른 에디터들 처럼 단어단위로, 오타 지우는 케이스는 히스토리 생성 안하는걸로
+      // undo 중간에 수정사항이 생기는 경우 현재 인덱스에서 변경된 값 생성하기
+      if (history.article[history.index - 1] !== element.value.innerHTML) {
+        history.article[history.index] = element.value.innerHTML;
+        history.index++;
+        console.log(history);
+      }
       return element.value;
     };
 
@@ -132,6 +130,10 @@ export default defineComponent({
     // };
 
     onMounted(() => {
+
+      history.article[history.index] = element.value.innerHTML;
+      history.index++;
+
       // 아이콘 영역 추가를 위한 eventBus 추가
       window.EventBus.on('emitAddIconArticleForm', ({type}) => {
         console.log('on:emitIconArticleForm', type);
@@ -147,12 +149,23 @@ export default defineComponent({
 
       // Undo
       window.EventBus.on('emitUndo', () => {
-        console.log('on:emitUndo');
+        if (history.index > 0) {
+          console.log('on:emitUndo', history.index);
+          element.value.innerHTML = history.article[history.index -1];
+          history.index--;
+        }
+        console.log(history);
       });
 
       // Redo
       window.EventBus.on('emitRedo', () => {
-        console.log('on:emitRedo');
+        if (history.article.length > history.index) {
+          console.log('on:emitRedo');
+          element.value.innerHTML = history.article[history.index];
+          history.index++;
+        }
+        console.log(history);
+
       });
 
       // json to element
@@ -173,7 +186,7 @@ export default defineComponent({
       if (selection && selection.anchorNode !== null) {
         lastSelection.selection.range = selection.getRangeAt(0);
         lastSelection.selection.index = selection.anchorOffset;
-        console.log('getMousePointPosition', $event, $event.currentTarget, $event.target);
+        // console.log('getMousePointPosition', $event, $event.currentTarget, $event.target);
       }
     };
 
@@ -185,38 +198,48 @@ export default defineComponent({
 
     const focusOut = () => {
       console.log('focus Out');
-      update();
+      // update();
     };
 
     const pasteEvent = ($event) => {
-      const paste = ($event.clipboardData || window.clipboardData).getData('text');
-      const temp = paste.split(/\n/g);
-
-      if (!selection.rangeCount) {
-        return false;
-      }
-
-      selection.getRangeAt(0).deleteContents();
-
-      let rows = document.createElement('div');
-
-      temp.forEach((text) => {
-        let row = document.createElement('div');
-        if (text) {
-          row.innerText = text.toString();
-        } else {
-          row.innerHTML = '<br>';
-        }
-        rows.appendChild(row);
-      });
-
-      // TODO :: undo, redo 생각하자
-      // TODO :: insertNode 는 undo, redo 가 안됨, 히스토리를 따로 관리해야 함
-      // TODO :: vuex? 아니면 입력마다 json 포맷으로 히스토리 생성 => json to element 구현 필요함
-      selection.getRangeAt(0).insertNode(rows);
       $event.preventDefault();
-      currentContent();
+      const paste = ($event.clipboardData || window.clipboardData).getData('text/plain');
+      document.execCommand('insertText', false, paste);
+
+
+      // const paste = ($event.clipboardData || window.clipboardData).getData('text');
+      // const temp = paste.split(/\n/g);
+      //
+      // if (!selection.rangeCount) {
+      //   return false;
+      // }
+      //
+      // selection.getRangeAt(0).deleteContents();
+      //
+      // let rows = document.createElement('div');
+      //
+      // temp.forEach((text) => {
+      //   let row = document.createElement('div');
+      //   if (text) {
+      //     row.innerText = text.toString();
+      //   } else {
+      //     row.innerHTML = '<br>';
+      //   }
+      //   rows.appendChild(row);
+      // });
+      //
+      // // TODO :: undo, redo 생각하자
+      // // TODO :: insertNode 는 undo, redo 가 안됨, 히스토리를 따로 관리해야 함
+      // // TODO :: vuex? 아니면 입력마다 json 포맷으로 히스토리 생성 => json to element 구현 필요함
+      // selection.getRangeAt(0).insertNode(rows);
+      // $event.preventDefault();
+      // currentContent();
     };
+
+    watch(element, (newValue, oldValue) => {
+      console.log('watch article lazy', newValue, oldValue);
+    })
+
     return {
       element,
       article,

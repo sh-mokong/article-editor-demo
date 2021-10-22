@@ -105,9 +105,8 @@ export default defineComponent({
          */
         if (node.childNodes.length > 0 && !node.classList?.contains('non-recursive')) {
           if (node.classList?.contains('icon-wrapper')) {
-            // 아이콘 영역은 별도의 함수에서 처리
-            console.log('asdfasdfsaasdfsadf', node);
-            getIconItemsInformation(node, lineNumber.value);
+            // 아이콘 영역
+            getIconItemInformation(node, lineNumber.value);
           } else {
             getExtractArticleText(node.childNodes);
           }
@@ -126,35 +125,23 @@ export default defineComponent({
       });
     };
 
-    const getIconItemsInformation = (nodes, line) => {
+    const getIconItemInformation = (nodes, line) => {
       const iconID = nodes.id;
       const iconCode = nodes.dataset.iconType;
       const description = nodes.getElementsByClassName('description');
+      // console.log('getIconItemsInformation', iconID, iconCode, description);
 
-      console.log('getIconItemsInformation', iconID, iconCode, description);
-
-      // 아이콘 영역이 나오면 해당 아이콘의 정보를 생성
+      // 아이콘의 정보를 생성
       if (!out.value.icon[iconID]) {
         out.value.icon[iconID] = {
-          iconType: '',
-          text: '',
-          position: {line: 0, index: 0},
+          iconType: iconCode,
+          text: description[0]?.outerText,
+          position: {
+            line: line === 0 ? 1 : line,
+            index: out.value.text[line] ? out.value.text[line].length : 0,
+          },
         };
       }
-
-      out.value.icon[iconID].iconType = iconCode;
-
-      //
-      if (out.value.text[line]) {
-        out.value.icon[iconID].position.index = out.value.text[line].length;
-      } else {
-        out.value.icon[iconID].position.index = 0;
-      }
-
-      out.value.icon[iconID].text = description[0]?.outerText;
-      // 처음 시작이 아이콘 영역으로 시작하는 경우 라인넘버 예외처리
-      out.value.icon[iconID].position.line = line === 0 ? 1 : line;
-
     };
 
     const printEditor = (output, type) => {
@@ -165,9 +152,8 @@ export default defineComponent({
         for (let textKey in output.text) {
           text += output.text[textKey] + '\r\n';
         }
-        console.log('TEXT: ');
         console.log(text);
-        console.log('Icon: ', JSON.stringify(output.icon));
+        console.log(JSON.stringify(output.icon));
       }
     };
 
@@ -200,11 +186,11 @@ export default defineComponent({
 
     const undo = () => {
       window.EventBus.emit('emitUndo');
-    }
+    };
 
     const redo = () => {
       window.EventBus.emit('emitRedo');
-    }
+    };
 
     onMounted(() => {
       // 아이콘 영역 선택 이벤트
@@ -234,7 +220,7 @@ export default defineComponent({
       fontFamily,
       iconAddEnable,
       undo,
-      redo
+      redo,
     };
   },
 });
