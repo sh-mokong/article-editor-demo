@@ -26,6 +26,9 @@
         :contents="contents"
         :article-id="articleId"
         :class="fontFamily"
+        @makeHistory="makeHistory"
+        @undo="undo"
+        @redo="redo"
     ></type-one>
   </div>
 </template>
@@ -33,6 +36,7 @@
 <script>
 
 import TypeOne from '@/components/type-one';
+// eslint-disable-next-line no-unused-vars
 import {defineComponent, ref, onMounted, watch} from 'vue';
 
 export default defineComponent({
@@ -47,39 +51,40 @@ export default defineComponent({
         {type: 'anchor-male-shot', icon: 'img_1.png'},
         {type: 'anchor-female-shot', icon: 'img_2.png'},
       ],
-      contents: {},
     };
   },
   emits: [],
   setup() {
     const article = ref({});
     const articleId = ref();
-    const articleData = ref();
     const editable = ref(true);
-    const out = ref();
+    const out = ref({
+      text: {},
+      icon: {},
+    });
     const lineNumber = ref(0);
     const fontFamily = ref('font-sans');
     const iconAddEnable = ref(true);
+    const history = {stack: [], index: 0};
+    const contents = ref({});
+    // eslint-disable-next-line no-unused-vars
     let tempParentNode = null;
 
     const outputArticle = (type) => {
-      let output = '';
-      if (type !== '' && article.value) {
-        output = article.value.children;
-      }
-
       // 초기화
-      if (output !== '') {
-        out.value = {
-          text: {},
-          icon: {},
-        };
+      out.value = {
+        text: {},
+        icon: {},
+      };
+
+      if (type !== '' && article.value.children !== undefined) {
+        let output = article.value.children;
         tempParentNode = null;
         lineNumber.value = 0;
 
         getExtractArticleText(output);
       }
-      printEditor(out.value, type);
+      return printEditor(out.value, type);
     };
 
     const getExtractArticleText = (nodes) => {
@@ -92,10 +97,11 @@ export default defineComponent({
          */
         if (node.nodeName.toUpperCase() !== 'DIV') {
           if (node.parentNode.nodeName.toUpperCase() === 'DIV') {
-            if (tempParentNode?.outerText !== node.parentNode.outerText) {
-              tempParentNode = nodes[0].parentNode;
-              lineNumber.value++;
-            }
+            // if (tempParentNode?.outerText !== node.parentNode.outerText) {
+            //   tempParentNode = nodes[0].parentNode;
+            // }
+            lineNumber.value++;
+
           }
         }
 
@@ -129,7 +135,6 @@ export default defineComponent({
       const iconID = nodes.id;
       const iconCode = nodes.dataset.iconType;
       const description = nodes.getElementsByClassName('description');
-      // console.log('getIconItemsInformation', iconID, iconCode, description);
 
       // 아이콘의 정보를 생성
       if (!out.value.icon[iconID]) {
@@ -150,10 +155,23 @@ export default defineComponent({
       } else if (type === 'text') {
         let text = '';
         for (let textKey in output.text) {
-          text += output.text[textKey] + '\r\n';
+          text += output.text[textKey];
+
+          if (output.text[textKey] !== '\n') {
+            text += '\n';
+          }
         }
-        console.log(text);
-        console.log(JSON.stringify(output.icon));
+        console.log({text: text, icon: JSON.stringify(output.icon)});
+      } else if (type === 'history') {
+        let text = '';
+        for (let textKey in output.text) {
+          text += output.text[textKey];
+
+          if (output.text[textKey] !== '\n') {
+            text += '\n';
+          }
+        }
+        return {text: text, icon: JSON.stringify(output.icon)};
       }
     };
 
@@ -165,7 +183,6 @@ export default defineComponent({
     const update = () => {
       console.log('update');
       // article.value = data;
-      outputArticle();
     };
 
     const addIconArticleForm = (type) => {
@@ -175,35 +192,77 @@ export default defineComponent({
       window.EventBus.emit('emitAddIconArticleForm', {type: type});
     };
 
-    const loadArticle = () => {
-      // json 데이터를 Content로 파싱하는 eventBus
-      window.EventBus.emit('emitParseJsonToContent', articleData);
-    };
-
     const expectedTime = () => {
+      // 기사 예상 시간
       return 0;
     };
 
+    const makeHistory = () => {
+      console.log('make history');
+      const stack = JSON.stringify(outputArticle('history'));
+      console.log(stack, history.stack[history.index - 1], stack === history.stack[history.index - 1]);
+      if (stack !== history.stack[history.index - 1]) {
+        history.stack[history.index++] = stack;
+        console.log(history);
+      }
+    };
+
     const undo = () => {
-      window.EventBus.emit('emitUndo');
+      if (history.index <= 0) {
+        return;
+      }
+
+      console.log('emit undo');
+      console.log(history);
+      // TODO:: 이렇게 하면 undo 누를 때 마다 히스토리 생성?
+      if (history.stack.length === history.index) {
+        makeHistory();
+        history.index--;
+      }
+
+      console.log(`history.index : ${history.index}`);
+      console.log(history.stack[history.index--]);
+      console.log(JSON.parse(history.stack[history.index]));
+      contents.value = JSON.parse(history.stack[history.index]);
     };
 
     const redo = () => {
-      window.EventBus.emit('emitRedo');
+      if ((history.index + 1) === history.stack.length) {
+        return;
+      }
+      console.log('emit redo');
+
+      console.log(history.stack[history.index++]);
+      console.log(JSON.parse(history.stack[history.index]));
+      contents.value = JSON.parse(history.stack[history.index]);
     };
 
     onMounted(() => {
       // 아이콘 영역 선택 이벤트
-      window.EventBus.on('emitSelectIconArticleForm', ({status}) => {
-        console.log('on:emitSelectIconArticleForm', status);
-        iconAddEnable.value = status;
-      });
+      // window.EventBus.on('emitSelectIconArticleForm', ({status}) => {
+      //   console.log('on:emitSelectIconArticleForm', status);
+      //   iconAddEnable.value = status;
+      // });
 
       articleId.value = `article-${new Date().getTime().toString()}`;
-    });
+      contents.value = {text: `3. Shallow equality
+During shallow equality check of objects you get the list of properties (using Object.keys()) of both objects, then check the properties’ values for equality.
+Here’s a possible implementation of shallow equality check:
 
-    watch(article, () => {
-      console.log('change article.value');
+function shallowEqual(object1, object2) {
+  const keys1 = Object.keys(object1);
+  const keys2 = Object.keys(object2);
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+  for (let key of keys1) {
+    if (object1[key] !== object2[key]) {
+      return false;
+    }
+  }
+  return true;
+}
+`, icon: {"icon-1635314010467":{"iconType":"male","text":"Takes a function following the common error-first callback style, i.e. taking an (err, value) => ... callback as the last argument, and returns a version that returns promises.\n","position":{"line":2,"index":158}}}}
     });
 
     return {
@@ -215,12 +274,13 @@ export default defineComponent({
       addIconArticleForm,
       out,
       articleId,
-      loadArticle,
       expectedTime,
       fontFamily,
       iconAddEnable,
+      makeHistory,
       undo,
       redo,
+      contents
     };
   },
 });

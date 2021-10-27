@@ -1,5 +1,5 @@
 <template class="p-3">
-  <div  @click="clicked">
+  <div @click="clicked">
     <div class="line-breaker top-bar non-recursive"
          :class="topButtonVisible ? 'show-line':'hidden-line'"
          @mouseenter="showTopButton"
@@ -130,14 +130,14 @@ export default defineComponent({
     const addNewLineTop = () => {
       // TODO :: 아이콘 영역 윗줄에 아무것도 없을 경우에만 윗줄에 새로운 줄 생성
       if (topButtonVisible.value) {
-        alert('addNewLineTop');
+        window.EventBus.emit('emitAddNewLineTop');
       }
     };
 
     const addNewLineBottom = () => {
       // TODO :: 아이콘 영역 아랫줄에 아무것도 없을 경우에만 아랫줄에 새로운 로우 생성
       if (bottomButtonVisible.value) {
-        alert('addNewLineBottom');
+        window.EventBus.emit('emitAddNewLineBottom');
       }
     };
 
