@@ -23,9 +23,7 @@
 
 <script>
 
-// eslint-disable-next-line no-unused-vars
-import {createApp, defineComponent, nextTick, onMounted, ref, toRefs, watch} from 'vue';
-// eslint-disable-next-line no-unused-vars
+import {createApp, defineComponent, nextTick, onMounted, ref, watch} from 'vue';
 import IconArticleForm from './IconArticleForm';
 
 export default defineComponent({
@@ -40,7 +38,7 @@ export default defineComponent({
       },
     },
   },
-  setup(props, {emit}) {
+  setup: function(props, {emit}) {
     const selection = window.getSelection();
     const element = ref();
     const lastSelection = {
@@ -58,11 +56,8 @@ export default defineComponent({
       }
       console.log('currentContent');
 
-      /**
-       * TODO :: 기사 예상시간 처리하기
-       * 아이콘 영역을 제거한 dom tree 에서 innerText 뽑아서 처리
-       */
 
+     // TODO :: 기사 예상시간 처리하기 - 아이콘 영역을 제거한 dom tree 에서 innerText 뽑아서 처리
       return element.value;
     };
 
@@ -70,12 +65,18 @@ export default defineComponent({
       emit('update:modelValue', currentContent());
     };
 
+
+    /**
+     * undo, redo 를 위한 history 생성하기
+     */
     const addHistoryStack = () => {
       console.log('addHistoryStack');
       emit('makeHistory', currentContent());
     };
 
-    // 아이콘 영역 삭제
+    /**
+     * 아이콘 영역 삭제
+     */
     const removeIconArticleForm = (id) => {
       console.log('remove Type-One', id);
       document.getElementById(id).remove();
@@ -83,11 +84,12 @@ export default defineComponent({
       addHistoryStack();
     };
 
-    // 아이콘 영역 추가
+    /**
+     * 아이콘 영역 추가
+     */
     const addIconArticleForm = (type) => {
       console.log('addIconArticleForm', type, lastSelection.selection.range);
       const timeStamp = new Date().getTime();
-      // eslint-disable-next-line no-unused-vars
       const message = '';
 
       // vue component 를 마운트 시킬 wrapper 생성
@@ -104,28 +106,41 @@ export default defineComponent({
 
       document.execCommand('insertHTML', true, temp.outerHTML);
 
-      // TODO :: component 를 마운트 하면 undo/redo 가 안됨
-      // innerHTML 만 되돌린 경우 인터렉션이 작동하지 않음
       nextTick(() => {
-        // 생성한 pre wrapper 에 component 를 마운트
-        createApp(IconArticleForm,
-            {
-              id: `icon-${timeStamp.toString()}`,
-              imgLink: '', message: message,
-              iconType: type,
-            }).mount(`#icon-${timeStamp.toString()}`);
+        setMountIconArticleForm({id: `icon-${timeStamp.toString()}`, type: type, message: message});
       });
 
       addHistoryStack();
     };
 
-    const parseJsonToContentEdit = (contents) => {
-      // eslint-disable-next-line no-unused-vars
-      const {text, icon} = contents;
-
+    /**
+     * JSON 데이터를 에디터 콘텐츠로 변환
+     */
+    const parseJsonToContentEdit = ({text, icon}) => {
       const rows = createRow(text, icon);
       element.value.innerHTML = rows.outerHTML;
+
+      nextTick(() => {
+        // 생성한 pre wrapper 에 component 를 마운트
+        for (let id in icon) {
+          setMountIconArticleForm({id: id, type: icon[id].iconType, message: icon[id].text});
+        }
+      });
+
       addHistoryStack();
+    };
+
+    /**
+     * 생성한 icon wrapper 에 vue component mount
+     */
+    const setMountIconArticleForm = ({id, type, message}) => {
+      // component mount
+      createApp(IconArticleForm,
+          {
+            id: id,
+            imgLink: '', message: message,
+            iconType: type,
+          }).mount(`#${id}`);
     };
 
     onMounted(() => {
@@ -182,6 +197,7 @@ export default defineComponent({
     const pasteEvent = ($event) => {
       // 붙여넣기 이벤트
       $event.preventDefault();
+
       // const paste = ($event.clipboardData || window.clipboardData).getData('text/plain');
       // document.execCommand('insertText', false, paste);
       // addHistoryStack();
@@ -191,33 +207,66 @@ export default defineComponent({
       if (!selection.rangeCount) {
         return false;
       }
+
       const rows = createRow(paste);
       document.execCommand('insertHTML', true, rows.outerHTML);
+
       addHistoryStack();
     };
 
-    // eslint-disable-next-line no-unused-vars
+    /**
+     * 텍스트, 아이콘을 각각 한줄 씩 생성
+     */
     const createRow = (text, icon) => {
       // 붙여넣기, 되돌리기 등 에디터에 들어갈 텍스트 생성
-      const temp = text.split(/\n/g);
-      let wrapper = document.createElement('div');
+      const tempText = text.split(/\n/g);
+      const wrapper = document.createElement('div');
+      const tempIcon = [];
 
-      console.log(text, icon, temp);
+      if (icon !== undefined && Object.keys(icon).length !== 0) {
+        // TODO :: 에러난다
+        for (let id in icon) {
+          tempIcon[icon[id].position.line - 1] = icon[id];
+          tempIcon[icon[id].position.line - 1].id = id;
+        }
+      }
 
-      // eslint-disable-next-line no-unused-vars
-      temp.forEach((text, index) => {
-        let row = document.createElement('div');
+      tempText.forEach((text, index) => {
+        const row = document.createElement('div');
+        const icon = document.createElement('div');
+
+        if (tempIcon[index] !== undefined) {
+          icon.classList.add('icon-wrapper');
+          icon.setAttribute('contenteditable', false);
+          icon.setAttribute('id', tempIcon[index].id);
+          icon.dataset.iconType = tempIcon[index].iconType;
+
+          if (tempIcon[index].iconType === 'female') {
+            icon.classList.add('type-icon');
+          }
+        }
+
         if (text) {
-          row.innerText = text.toString();
+          if (tempIcon[index] !== undefined) {
+            const str = [
+              text.slice(0, tempIcon[index].position.index),
+              text.toString().slice(tempIcon[index].position.index)];
+            row.innerHTML = str[0] + icon.outerHTML + str[1];
+          } else {
+            row.innerHTML = text;
+          }
         } else {
           row.innerHTML = '<br>';
         }
+
         wrapper.appendChild(row);
       });
+
       return wrapper;
     };
 
     const undoRedo = ($event) => {
+      // ctrl, meta + z / ctrl, meta + shift + z 눌렀을 때만
       if ($event.shiftKey === true && $event.code === 'KeyZ') {
         $event.preventDefault();
         emit('redo');
@@ -228,9 +277,8 @@ export default defineComponent({
     };
 
     watch(() => props.contents, (newValue, oldValue) => {
-      console.log(
-          'Watch props.contents changes:', oldValue, newValue,
-      );
+      // undo, redo 를 위해 props.contents 를 watch
+      console.log('Watch props.contents changes:', oldValue, newValue);
       parseJsonToContentEdit(newValue);
     });
 

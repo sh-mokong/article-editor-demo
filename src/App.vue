@@ -36,8 +36,7 @@
 <script>
 
 import TypeOne from '@/components/type-one';
-// eslint-disable-next-line no-unused-vars
-import {defineComponent, ref, onMounted, watch} from 'vue';
+import {defineComponent, ref, onMounted} from 'vue';
 
 export default defineComponent({
   name: 'App',
@@ -48,12 +47,12 @@ export default defineComponent({
   data() {
     return {
       iconList: [
+          // TODO :: DB 에서 가져오기
         {type: 'anchor-male-shot', icon: 'img_1.png'},
         {type: 'anchor-female-shot', icon: 'img_2.png'},
       ],
     };
   },
-  emits: [],
   setup() {
     const article = ref({});
     const articleId = ref();
@@ -63,6 +62,7 @@ export default defineComponent({
       icon: {},
     });
     const lineNumber = ref(0);
+    // TODO :: 폰트 목록 정의 필요
     const fontFamily = ref('font-sans');
     const iconAddEnable = ref(true);
     const history = {stack: [], index: 0};
@@ -71,6 +71,7 @@ export default defineComponent({
     let tempParentNode = null;
 
     const outputArticle = (type) => {
+      // 기사 내용 내보내기
       // 초기화
       out.value = {
         text: {},
@@ -132,6 +133,7 @@ export default defineComponent({
     };
 
     const getIconItemInformation = (nodes, line) => {
+      // 아이콘 영역 정보 추출
       const iconID = nodes.id;
       const iconCode = nodes.dataset.iconType;
       const description = nodes.getElementsByClassName('description');
@@ -150,6 +152,8 @@ export default defineComponent({
     };
 
     const printEditor = (output, type) => {
+      // 추출한 정보를 프린트
+      // TODO :: 정리 필요함
       if (type === 'json') {
         console.log(JSON.stringify(output));
       } else if (type === 'text') {
@@ -175,15 +179,6 @@ export default defineComponent({
       }
     };
 
-    const toggle = () => {
-      console.log('toggle');
-      editable.value = !editable.value;
-    };
-
-    const update = () => {
-      console.log('update');
-      // article.value = data;
-    };
 
     const addIconArticleForm = (type) => {
       // 아이콘 영역 추가를 위한 eventBus
@@ -198,6 +193,7 @@ export default defineComponent({
     };
 
     const makeHistory = () => {
+      // undo, redo 를 위한 history 생성
       console.log('make history');
       const stack = JSON.stringify(outputArticle('history'));
       console.log(stack, history.stack[history.index - 1], stack === history.stack[history.index - 1]);
@@ -238,38 +234,14 @@ export default defineComponent({
     };
 
     onMounted(() => {
-      // 아이콘 영역 선택 이벤트
-      // window.EventBus.on('emitSelectIconArticleForm', ({status}) => {
-      //   console.log('on:emitSelectIconArticleForm', status);
-      //   iconAddEnable.value = status;
-      // });
-
+      // 에디터 마운트 시 기사 아이디 생성 - 타임스탬프
+      // TODO :: 별도로 정해진 아이디 생성 규칙이 있다면 그걸로 변경
       articleId.value = `article-${new Date().getTime().toString()}`;
-      contents.value = {text: `3. Shallow equality
-During shallow equality check of objects you get the list of properties (using Object.keys()) of both objects, then check the properties’ values for equality.
-Here’s a possible implementation of shallow equality check:
-
-function shallowEqual(object1, object2) {
-  const keys1 = Object.keys(object1);
-  const keys2 = Object.keys(object2);
-  if (keys1.length !== keys2.length) {
-    return false;
-  }
-  for (let key of keys1) {
-    if (object1[key] !== object2[key]) {
-      return false;
-    }
-  }
-  return true;
-}
-`, icon: {"icon-1635314010467":{"iconType":"male","text":"Takes a function following the common error-first callback style, i.e. taking an (err, value) => ... callback as the last argument, and returns a version that returns promises.\n","position":{"line":2,"index":158}}}}
     });
 
     return {
       editable,
       outputArticle,
-      toggle,
-      update,
       article,
       addIconArticleForm,
       out,
@@ -280,7 +252,7 @@ function shallowEqual(object1, object2) {
       makeHistory,
       undo,
       redo,
-      contents
+      contents,
     };
   },
 });
