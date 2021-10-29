@@ -36,7 +36,7 @@
 <script>
 
 import TypeOne from '@/components/type-one';
-import {defineComponent, ref, onMounted} from 'vue';
+import {defineComponent, ref, onMounted, reactive} from 'vue';
 
 export default defineComponent({
   name: 'App',
@@ -65,7 +65,7 @@ export default defineComponent({
     // TODO :: 폰트 목록 정의 필요
     const fontFamily = ref('font-sans');
     const iconAddEnable = ref(true);
-    const history = {stack: [], index: 0};
+    const history = reactive({stack: [], index: 0});
     const contents = ref({});
     // eslint-disable-next-line no-unused-vars
     let tempParentNode = null;
@@ -201,7 +201,9 @@ export default defineComponent({
       // 되돌리기 중간에 수정내용이 있는 경우 히스토리를 제거한다
       if (history.stack.length > history.index) {
         console.log('되돌리기 중간에 수정');
-        history.stack = history.stack.splice(history.index -1);
+        history.index--;
+        console.log(`history.stack.splice(${history.index})`);
+        history.stack = history.stack.splice(history.index);
         console.log(history);
       }
 
@@ -248,7 +250,7 @@ export default defineComponent({
 
       console.log(`history.index : ${history.index}`);
       console.log(history.stack[history.index++]);
-      contents.value = JSON.parse(history.stack[history.index]);
+      contents.value = JSON.parse(history.stack[history.index]);``
       console.log(JSON.parse(history.stack[history.index]));
     };
 
@@ -272,6 +274,7 @@ export default defineComponent({
       undo,
       redo,
       contents,
+      history
     };
   },
 });

@@ -134,12 +134,15 @@ export default defineComponent({
       });
       const selection = window.getSelection();
 
+
       const range = document.createRange();
       selection.removeAllRanges();
       range.selectNodeContents(element.value);
       range.collapse(false);
       selection.addRange(range);
       element.value.focus();
+
+
     };
 
     /**
@@ -281,6 +284,7 @@ export default defineComponent({
       return wrapper;
     };
 
+    // eslint-disable-next-line no-unused-vars
     const undoRedo = ($event) => {
       // ctrl, meta + z / ctrl, meta + shift + z 눌렀을 때만
       if ($event.shiftKey === true && $event.code === 'KeyZ') {
