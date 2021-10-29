@@ -197,19 +197,31 @@ export default defineComponent({
       console.log('make history');
       const stack = JSON.stringify(outputArticle('history'));
       console.log(stack, history.stack[history.index - 1], stack === history.stack[history.index - 1]);
-      if (stack !== history.stack[history.index - 1]) {
-        history.stack[history.index++] = stack;
+
+      // 되돌리기 중간에 수정내용이 있는 경우 히스토리를 제거한다
+      if (history.stack.length > history.index) {
+        console.log('되돌리기 중간에 수정');
+        history.stack = history.stack.splice(history.index -1);
         console.log(history);
       }
+
+      if (stack !== history.stack[history.index - 1]) {
+        console.log(`history.index  11: ${history.index}`);
+
+        history.stack[history.index++] = stack;
+        console.log(`history.index  22: ${history.index}`);
+      }
+      console.log(history);
     };
 
     const undo = () => {
+      console.log('emit undo');
       if (history.index <= 0) {
         return;
       }
 
-      console.log('emit undo');
       console.log(history);
+
       // TODO:: 이렇게 하면 undo 누를 때 마다 히스토리 생성?
       if (history.stack.length === history.index) {
         makeHistory();
@@ -223,14 +235,21 @@ export default defineComponent({
     };
 
     const redo = () => {
+      console.log('emit redo');
+      console.log(history);
+
+      console.log('history.index + 1 ', history.index + 1);
+      console.log('history.stack.length: ', history.stack.length);
+      console.log('(history.index + 1) === history.stack.length : ',(history.index + 1) === history.stack.length);
       if ((history.index + 1) === history.stack.length) {
         return;
       }
-      console.log('emit redo');
 
+
+      console.log(`history.index : ${history.index}`);
       console.log(history.stack[history.index++]);
-      console.log(JSON.parse(history.stack[history.index]));
       contents.value = JSON.parse(history.stack[history.index]);
+      console.log(JSON.parse(history.stack[history.index]));
     };
 
     onMounted(() => {

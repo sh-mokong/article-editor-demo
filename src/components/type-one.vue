@@ -16,6 +16,8 @@
       @keyup.delete="addHistoryStack"
       @keydown.ctrl="undoRedo"
       @keydown.meta="undoRedo"
+      @keyup.ctrl="undoRedo"
+      @keyup.meta="undoRedo"
   >
     <div><br></div>
   </component>
@@ -56,15 +58,13 @@ export default defineComponent({
       }
       console.log('currentContent');
 
-
-     // TODO :: 기사 예상시간 처리하기 - 아이콘 영역을 제거한 dom tree 에서 innerText 뽑아서 처리
+      // TODO :: 기사 예상시간 처리하기 - 아이콘 영역을 제거한 dom tree 에서 innerText 뽑아서 처리
       return element.value;
     };
 
     const update = () => {
       emit('update:modelValue', currentContent());
     };
-
 
     /**
      * undo, redo 를 위한 history 생성하기
@@ -116,8 +116,14 @@ export default defineComponent({
     /**
      * JSON 데이터를 에디터 콘텐츠로 변환
      */
-    const parseJsonToContentEdit = ({text, icon}) => {
+    const parseJsonToContentEdit = (content) => {
+      console.log('parseJsonToContentEdit', content);
+      const {text} = content;
+      const icon = JSON.parse(content.icon);
+      console.log(typeof text, typeof icon);
       const rows = createRow(text, icon);
+
+      console.log('text, icon', text, icon);
       element.value.innerHTML = rows.outerHTML;
 
       nextTick(() => {
@@ -126,8 +132,14 @@ export default defineComponent({
           setMountIconArticleForm({id: id, type: icon[id].iconType, message: icon[id].text});
         }
       });
+      const selection = window.getSelection();
 
-      addHistoryStack();
+      const range = document.createRange();
+      selection.removeAllRanges();
+      range.selectNodeContents(element.value);
+      range.collapse(false);
+      selection.addRange(range);
+      element.value.focus();
     };
 
     /**
@@ -198,6 +210,9 @@ export default defineComponent({
       // 붙여넣기 이벤트
       $event.preventDefault();
 
+      // 붙여넣기 이전 상태 undo stack 에 추가
+      addHistoryStack();
+
       // const paste = ($event.clipboardData || window.clipboardData).getData('text/plain');
       // document.execCommand('insertText', false, paste);
       // addHistoryStack();
@@ -211,6 +226,7 @@ export default defineComponent({
       const rows = createRow(paste);
       document.execCommand('insertHTML', true, rows.outerHTML);
 
+      // 붙여넣기 이후 상태 undo stack 에 추가
       addHistoryStack();
     };
 
@@ -218,13 +234,13 @@ export default defineComponent({
      * 텍스트, 아이콘을 각각 한줄 씩 생성
      */
     const createRow = (text, icon) => {
+      console.log(`createRow : text:${text}, icon:${icon}`, typeof icon);
       // 붙여넣기, 되돌리기 등 에디터에 들어갈 텍스트 생성
-      const tempText = text.split(/\n/g);
       const wrapper = document.createElement('div');
+      const tempText = text?.split(/\n/g);
       const tempIcon = [];
 
       if (icon !== undefined && Object.keys(icon).length !== 0) {
-        // TODO :: 에러난다
         for (let id in icon) {
           tempIcon[icon[id].position.line - 1] = icon[id];
           tempIcon[icon[id].position.line - 1].id = id;
