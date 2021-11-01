@@ -33,8 +33,9 @@
           :contenteditable="false">
         <div class="description outline-none"
              :contenteditable="editable"
-             @keypress="enterKeyEvent">
-          {{ message }}
+             @keypress="enterKeyEvent"
+             ref="description">
+          <!--          {{ messageNtoBr }}-->
         </div>
       </div>
       <div
@@ -68,7 +69,7 @@
 </template>
 
 <script>
-import {defineComponent, ref} from 'vue';
+import {defineComponent, onMounted, ref} from 'vue';
 
 export default defineComponent({
   name: 'IconArticleForm',
@@ -98,6 +99,7 @@ export default defineComponent({
     const root = ref(null);
     const topButtonVisible = ref(false);
     const bottomButtonVisible = ref(false);
+    const description = ref();
 
     const enterKeyEvent = ($event) => {
       // console.log($event.keyCode, $event.keyCode === 13);
@@ -163,6 +165,11 @@ export default defineComponent({
       bottomButtonVisible.value = false;
     };
 
+    onMounted(() => {
+      console.log('message : ', props.message);
+      description.value.innerText = props.message;
+    });
+
     return {
       enterKeyEvent,
       clicked,
@@ -180,6 +187,7 @@ export default defineComponent({
       hideBottomButton,
       addNewLineTop,
       addNewLineBottom,
+      description,
     };
   },
 

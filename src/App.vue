@@ -36,7 +36,7 @@
 <script>
 
 import TypeOne from '@/components/type-one';
-import {defineComponent, ref, onMounted, reactive} from 'vue';
+import {defineComponent, ref, onMounted} from 'vue';
 
 export default defineComponent({
   name: 'App',
@@ -47,7 +47,7 @@ export default defineComponent({
   data() {
     return {
       iconList: [
-          // TODO :: DB 에서 가져오기
+        // TODO :: DB 에서 가져오기
         {type: 'anchor-male-shot', icon: 'img_1.png'},
         {type: 'anchor-female-shot', icon: 'img_2.png'},
       ],
@@ -65,7 +65,7 @@ export default defineComponent({
     // TODO :: 폰트 목록 정의 필요
     const fontFamily = ref('font-sans');
     const iconAddEnable = ref(true);
-    const history = reactive({stack: [], index: 0});
+    const history = {stack: [], index: 0, max: 30};
     const contents = ref({});
     // eslint-disable-next-line no-unused-vars
     let tempParentNode = null;
@@ -179,7 +179,6 @@ export default defineComponent({
       }
     };
 
-
     const addIconArticleForm = (type) => {
       // 아이콘 영역 추가를 위한 eventBus
       const selection = window.getSelection();
@@ -198,22 +197,27 @@ export default defineComponent({
       const stack = JSON.stringify(outputArticle('history'));
       console.log(stack, history.stack[history.index - 1], stack === history.stack[history.index - 1]);
 
+      console.log('111 stack: ', history.stack, 'index : ', history.index);
+
       // 되돌리기 중간에 수정내용이 있는 경우 히스토리를 제거한다
-      if (history.stack.length > history.index) {
-        console.log('되돌리기 중간에 수정');
-        history.index--;
-        console.log(`history.stack.splice(${history.index})`);
-        history.stack = history.stack.splice(history.index);
-        console.log(history);
-      }
+      history.stack = history.stack.splice(0, history.index);
+
+      console.log('222 stack: ', history.stack, 'index : ', history.index);
+
+      // TODO :: max length 적용하기
 
       if (stack !== history.stack[history.index - 1]) {
-        console.log(`history.index  11: ${history.index}`);
+        console.log('aaa stack: ', history.stack, 'index : ', history.index);
 
-        history.stack[history.index++] = stack;
-        console.log(`history.index  22: ${history.index}`);
+        history.stack[history.index] = stack;
+        history.index++;
+
+        console.log('bbb stack: ', history.stack, 'index : ', history.index);
+
       }
-      console.log(history);
+
+      console.log('333 stack: ', history.stack, 'index : ', history.index);
+
     };
 
     const undo = () => {
@@ -242,15 +246,14 @@ export default defineComponent({
 
       console.log('history.index + 1 ', history.index + 1);
       console.log('history.stack.length: ', history.stack.length);
-      console.log('(history.index + 1) === history.stack.length : ',(history.index + 1) === history.stack.length);
+      console.log('(history.index + 1) === history.stack.length : ', (history.index + 1) === history.stack.length);
       if ((history.index + 1) === history.stack.length) {
         return;
       }
 
-
       console.log(`history.index : ${history.index}`);
       console.log(history.stack[history.index++]);
-      contents.value = JSON.parse(history.stack[history.index]);``
+      contents.value = JSON.parse(history.stack[history.index]);
       console.log(JSON.parse(history.stack[history.index]));
     };
 
@@ -274,7 +277,6 @@ export default defineComponent({
       undo,
       redo,
       contents,
-      history
     };
   },
 });

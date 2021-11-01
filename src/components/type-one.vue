@@ -153,7 +153,8 @@ export default defineComponent({
       createApp(IconArticleForm,
           {
             id: id,
-            imgLink: '', message: message,
+            imgLink: '',
+            message: message,
             iconType: type,
           }).mount(`#${id}`);
     };
@@ -199,13 +200,13 @@ export default defineComponent({
     };
 
     const focusIn = () => {
-      console.log('focus In');
+      // console.log('focus In');
       window.EventBus.emit('emitSelectIconArticleForm', {status: true});
       console.log('emit:emitSelectIconArticleForm');
     };
 
     const focusOut = () => {
-      console.log('focus Out');
+      // console.log('focus Out');
       // update();
     };
 
