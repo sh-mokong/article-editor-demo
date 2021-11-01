@@ -193,40 +193,26 @@ export default defineComponent({
 
     const makeHistory = () => {
       // undo, redo 를 위한 history 생성
-      console.log('make history');
       const stack = JSON.stringify(outputArticle('history'));
-      console.log(stack, history.stack[history.index - 1], stack === history.stack[history.index - 1]);
-
-      // console.log('111 stack: ', history.stack, 'index : ', history.index);
+      // console.log(stack, history.stack[history.index - 1], stack === history.stack[history.index - 1]);
 
       // 되돌리기 중간에 수정내용이 있는 경우 히스토리를 제거한다
       history.stack = history.stack.splice(0, history.index);
 
-      // console.log('222 stack: ', history.stack, 'index : ', history.index);
 
       // TODO :: max length 적용하기
+      // TODO :: 커서 위치 뽑아서 커서위치 표시
 
       if (stack !== history.stack[history.index - 1]) {
-        console.log('aaa stack: ', history.stack, 'index : ', history.index);
-
         history.stack[history.index] = stack;
         history.index++;
-
-        console.log('bbb stack: ', history.stack, 'index : ', history.index);
-
       }
-
-      console.log('333 stack: ', history.stack, 'index : ', history.index);
-
     };
 
     const undo = () => {
-      console.log('emit undo');
       if (history.index <= 0) {
         return;
       }
-
-      console.log(history);
 
       // TODO:: 이렇게 하면 undo 누를 때 마다 히스토리 생성?
       if (history.stack.length === history.index) {
@@ -234,25 +220,20 @@ export default defineComponent({
         history.index--;
       }
 
-      console.log(`history.index : ${history.index}`);
-      console.log(history.stack[history.index--]);
-      console.log(JSON.parse(history.stack[history.index]));
+      history.index--;
       contents.value = JSON.parse(history.stack[history.index]);
+      console.log(JSON.parse(history.stack[history.index]));
     };
 
     const redo = () => {
       console.log('emit redo');
-      console.log(history);
 
-      console.log('history.index + 1 ', history.index + 1);
-      console.log('history.stack.length: ', history.stack.length);
-      console.log('(history.index + 1) === history.stack.length : ', (history.index + 1) === history.stack.length);
       if ((history.index + 1) === history.stack.length) {
         return;
       }
 
-      console.log(`history.index : ${history.index}`);
-      console.log(history.stack[history.index++]);
+      history.index++;
+
       contents.value = JSON.parse(history.stack[history.index]);
       console.log(JSON.parse(history.stack[history.index]));
     };
