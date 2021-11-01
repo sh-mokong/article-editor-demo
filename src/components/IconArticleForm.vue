@@ -35,7 +35,6 @@
              :contenteditable="editable"
              @keypress="enterKeyEvent"
              ref="description">
-          <!--          {{ messageNtoBr }}-->
         </div>
       </div>
       <div
@@ -166,7 +165,6 @@ export default defineComponent({
     };
 
     onMounted(() => {
-      console.log('message : ', props.message);
       description.value.innerText = props.message;
     });
 

@@ -197,12 +197,12 @@ export default defineComponent({
       const stack = JSON.stringify(outputArticle('history'));
       console.log(stack, history.stack[history.index - 1], stack === history.stack[history.index - 1]);
 
-      console.log('111 stack: ', history.stack, 'index : ', history.index);
+      // console.log('111 stack: ', history.stack, 'index : ', history.index);
 
       // 되돌리기 중간에 수정내용이 있는 경우 히스토리를 제거한다
       history.stack = history.stack.splice(0, history.index);
 
-      console.log('222 stack: ', history.stack, 'index : ', history.index);
+      // console.log('222 stack: ', history.stack, 'index : ', history.index);
 
       // TODO :: max length 적용하기
 

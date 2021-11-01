@@ -276,7 +276,9 @@ export default defineComponent({
             row.innerHTML = text;
           }
         } else {
-          row.innerHTML = '<br>';
+          if ((index + 1) !== tempText.length) {
+            row.innerHTML = '<br>';
+          }
         }
 
         wrapper.appendChild(row);
