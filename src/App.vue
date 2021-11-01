@@ -199,7 +199,6 @@ export default defineComponent({
       // 되돌리기 중간에 수정내용이 있는 경우 히스토리를 제거한다
       history.stack = history.stack.splice(0, history.index);
 
-
       // TODO :: max length 적용하기
       // TODO :: 커서 위치 뽑아서 커서위치 표시
 
@@ -239,6 +238,11 @@ export default defineComponent({
     };
 
     onMounted(() => {
+      window.EventBus.on('emitSelectIconArticleForm', ({id, status}) => {
+        console.log('emitSelectIconArticleForm', id, status);
+        iconAddEnable.value = status;
+      });
+
       // 에디터 마운트 시 기사 아이디 생성 - 타임스탬프
       // TODO :: 별도로 정해진 아이디 생성 규칙이 있다면 그걸로 변경
       articleId.value = `article-${new Date().getTime().toString()}`;
