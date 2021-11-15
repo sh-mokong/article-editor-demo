@@ -45,16 +45,15 @@ export default defineComponent({
     const element = ref();
     const lastSelection = {
       event: '',
-      selection: {
-        range: 0,
-        index: 0,
-      },
+      range: 0,
+      anchorNode: 0,
+      anchorOffset: 0,
     };
 
     const currentContent = () => {
       if (selection && selection.anchorNode !== null) {
-        lastSelection.selection.range = selection.getRangeAt(0);
-        lastSelection.selection.index = selection.anchorOffset;
+        lastSelection.range = selection.getRangeAt(0);
+        lastSelection.index = selection.anchorOffset;
       }
       console.log('currentContent');
 
@@ -88,7 +87,10 @@ export default defineComponent({
      * 아이콘 영역 추가
      */
     const addIconArticleForm = (type) => {
-      console.log('addIconArticleForm', type, lastSelection.selection.range);
+      // if (!iconAddEnable.value) {
+      //   return;
+      // }
+      console.log('addIconArticleForm', type, lastSelection.range);
       const timeStamp = new Date().getTime();
       const message = '';
 
@@ -104,7 +106,9 @@ export default defineComponent({
         temp.classList.add('type-icon');
       }
 
-      document.execCommand('insertHTML', true, temp.outerHTML);
+      const position = lastSelection.range;
+      position.insertNode(temp);
+      // document.execCommand('insertHTML', true, temp.outerHTML);
 
       nextTick(() => {
         setMountIconArticleForm({id: `icon-${timeStamp.toString()}`, type: type, message: message});
@@ -134,14 +138,11 @@ export default defineComponent({
       });
       const selection = window.getSelection();
 
-
       const range = document.createRange();
       selection.removeAllRanges();
       range.selectNodeContents(element.value);
       range.collapse(false);
-      selection.addRange(range);
       element.value.focus();
-
 
     };
 
@@ -191,11 +192,12 @@ export default defineComponent({
     });
 
     const getMousePointPosition = ($event) => {
-      lastSelection.event = $event;
       if (selection && selection.anchorNode !== null) {
-        lastSelection.selection.range = selection.getRangeAt(0);
-        lastSelection.selection.index = selection.anchorOffset;
-        // console.log('getMousePointPosition', $event, $event.currentTarget, $event.target);
+        const range = selection.getRangeAt(0);
+        lastSelection.event = $event;
+        lastSelection.range = range;
+        lastSelection.anchorOffset = selection.anchorOffset;
+        lastSelection.anchorNode = selection.anchorNode;
       }
     };
 

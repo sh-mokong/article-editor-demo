@@ -209,6 +209,7 @@ export default defineComponent({
     };
 
     const undo = () => {
+      console.log('undo');
       if (history.index <= 0) {
         return;
       }
